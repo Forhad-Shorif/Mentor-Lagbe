@@ -126,12 +126,12 @@ const Navbar = () => {
               <HugeiconsIcon icon={Menu01Icon} size={18} strokeWidth={2} />
             </SheetTrigger>
 
-            <SheetContent side="right" className="w-72 gap-2">
-              <SheetHeader>
+            <SheetContent side="right" floating className="gap-2">
+              <SheetHeader className="pr-12">
                 <SheetTitle>Menu</SheetTitle>
               </SheetHeader>
 
-              <div className="flex flex-col gap-1 px-6 pb-6">
+              <div className="flex flex-1 flex-col gap-1 overflow-y-auto px-6 pb-6">
                 {session && (
                   <Link
                     href={dashboardHref}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Figtree } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import AppToaster from "@/components/SheareUI/AppToaster";
 
 const figtree = Figtree({subsets:['latin'],variable:'--font-sans'});
 
@@ -37,6 +38,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           }}
         /> 
         {children}
+        <AppToaster />
       </body>
     </html>
   );

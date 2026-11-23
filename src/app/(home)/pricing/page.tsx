@@ -6,9 +6,9 @@ import {
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
-import ServerUser from "@/lib/ServerUser";
 import TeacherPlanSection from "@/components/SheareDashboard/SheareTeacher/TeacherPlanSection";
-import StudentPlanSection from "@/components/SheareDashboard/SheareStudents/StudentPlanSection";
+import StudentPlanSection from "@/components/SheareDashboard/SheareStudents/OverView/StudentPlanSection";
+import { ServerUser } from "@/lib/ServerUser";
 
 export default async function PricingPage() {
   const user = await ServerUser();

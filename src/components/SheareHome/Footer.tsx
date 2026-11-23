@@ -70,9 +70,9 @@ const Footer = () => {
         </div>
 
         {/* ---------- Links grid ---------- */}
-        <div className="mt-8 grid gap-6 lg:grid-cols-[1.4fr_1fr_1fr_1.4fr]">
+        <div className="mt-8 grid grid-cols-2 gap-6 lg:grid-cols-[1.4fr_1fr_1fr_1.4fr]">
           {/* Brand card */}
-          <div className="rounded-2xl border border-teal-200 bg-gradient-to-b from-teal-50 to-white p-6 dark:border-teal-400/20 dark:from-teal-400/[0.07] dark:to-transparent">
+          <div className="col-span-2 rounded-2xl border border-teal-200 bg-gradient-to-b from-teal-50 to-white p-5 sm:p-6 lg:col-span-1 dark:border-teal-400/20 dark:from-teal-400/[0.07] dark:to-transparent">
             <Link href="/" className="flex items-center gap-3">
               <span className="relative grid size-11 place-items-center">
                 <HugeiconsIcon
@@ -138,7 +138,7 @@ const Footer = () => {
           </div>
 
           {/* Contact card */}
-          <div className="rounded-2xl border border-teal-200 bg-gradient-to-b from-teal-50 to-white p-6 dark:border-teal-400/20 dark:from-teal-400/10 dark:to-transparent">
+          <div className="col-span-2 rounded-2xl border border-teal-200 bg-gradient-to-b from-teal-50 to-white p-5 sm:p-6 lg:col-span-1 dark:border-teal-400/20 dark:from-teal-400/10 dark:to-transparent">
             <h4 className="text-[11px] font-semibold tracking-[0.18em] text-teal-600 dark:text-teal-400">
               GET IN TOUCH
             </h4>
@@ -206,7 +206,7 @@ const Footer = () => {
         <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-teal-100 pt-6 text-xs text-neutral-500 sm:flex-row dark:border-white/5 dark:text-slate-500">
           <p>© 2026 MentorLagbe. All rights reserved.</p>
 
-          <div className="flex items-center gap-6">
+          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-center sm:justify-end">
             <Link href="/privacy" className="transition-colors hover:text-neutral-900 dark:hover:text-slate-300">
               Privacy Policy
             </Link>

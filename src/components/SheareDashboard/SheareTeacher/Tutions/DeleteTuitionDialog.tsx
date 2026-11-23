@@ -27,7 +27,7 @@ export default function DeleteTuitionDialog({
     const [deleting, setDeleting] = useState(false);
 
     const backendUrl =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
     const handleDelete = async () => {
         if (!id) return;

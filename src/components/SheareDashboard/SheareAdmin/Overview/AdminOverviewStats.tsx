@@ -1,8 +1,8 @@
 import React from "react";
 import { Mail, ShieldCheck, Sparkles, UserCheck } from "lucide-react";
-import ServerUser from "@/lib/ServerUser";
+
 import AdminOverviewStats from "./AdminOverviewStats";
-import AdminSpotlightSection from "./AdminSpotlightSection";
+import { ServerUser } from "@/lib/ServerUser";
 
 export default async function AdminDashboardPage() {
   const user = await ServerUser();
@@ -72,9 +72,6 @@ export default async function AdminDashboardPage() {
 
         {/* Client Overview Section (Users, Payments, Courses & More) */}
         <AdminOverviewStats />
-
-        {/* Client WOW Spotlight Section */}
-        {/* <AdminSpotlightSection /> */}
       </div>
     </main>
   );

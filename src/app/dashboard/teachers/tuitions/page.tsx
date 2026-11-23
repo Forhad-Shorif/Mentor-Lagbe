@@ -6,7 +6,7 @@ import { headers } from "next/headers";
 
 export default async function TeacherTuitionsPage() {
   const backendUrl =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
     const session = await auth.api.getSession({
         headers: await headers() // you need to pass the headers object.
@@ -34,7 +34,7 @@ export default async function TeacherTuitionsPage() {
   }
 
   return (
-    <div className="py-2">
+    <div className="w-full">
       <MyTuitionsList initialTuitions={tuitions} />
     </div>
   );

@@ -31,7 +31,7 @@ export default function TeacherPlanSection({
   );
 
   const backendUrl =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
   const proPrice = billingCycle === "monthly" ? 15 : 39;
   const amountInCents = proPrice * 100;

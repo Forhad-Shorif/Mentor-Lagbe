@@ -29,7 +29,7 @@ export default function StudentPlanSection({
   );
 
   const backendUrl =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
   const proPrice = billingCycle === "monthly" ? 10 : 27;
   const amountInCents = proPrice * 100;
@@ -142,7 +142,7 @@ export default function StudentPlanSection({
                 Starter Allowance
               </p>
               <p className="mt-1 text-2xl font-black text-slate-900 dark:text-white">
-                Up to 5 Bookmarks
+                Up to 2 Bookmarks
               </p>
               <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                 Browse tuitions and submit direct applications.
@@ -152,7 +152,7 @@ export default function StudentPlanSection({
             <ul className="mt-5 space-y-2.5 text-xs text-slate-600 dark:text-slate-300 sm:text-sm">
               <li className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 shrink-0 text-slate-400" />
-                <span>Bookmark up to 5 tuitions</span>
+                <span>Bookmark up to 2 tuitions</span>
               </li>
               <li className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 shrink-0 text-slate-400" />

@@ -1,18 +1,19 @@
 import React from "react";
-import Profile from "@/components/SheareForm/ProfileForm/Profile-Form";
-import ServerUser from "@/lib/ServerUser";
+
 import ProfileMediaSection from "@/components/SheareForm/ProfileForm/ImageFeild";
 import UserProfileCard from "@/components/SheareForm/ProfileForm/UserProfile";
 import TeacherProfileCard from "@/components/SheareForm/ProfileForm/TeacherProfile";
-import {
-  getTeacherProfile,
-  getUserProfile,
-} from "@/components/SheareForm/ProfileForm/ActionProfile";
+import {getTeacherProfile,getUserProfile,} from "@/components/SheareForm/ProfileForm/ActionProfile";
 import { getRole } from "@/lib/roles";
 import EditTeacherProfileDialog from "@/components/SheareForm/ProfileForm/EditTeacherProfileDialog";
 import AddTeacherProfileDialog from "@/components/SheareForm/ProfileForm/Teacher-Form";
 import EditLeftProfileDialog from "@/components/SheareForm/ProfileForm/EditLeftProfileDialog";
 import AddLeftProfileDialog from "@/components/SheareForm/ProfileForm/Parsonal-Form";
+import AdminProfileBioCard from "@/components/SheareDashboard/SheareAdmin/NavProfile/AdminProfileBioCard";
+import AdminAccountMetaCard from "@/components/SheareDashboard/SheareAdmin/NavProfile/AdminAccountMetaCard";
+import AdminQuickActionsCard from "@/components/SheareDashboard/SheareAdmin/NavProfile/AdminQuickActionsCard";
+import NavProfileEdit from "@/components/SheareForm/ProfileForm/EditNavProfile";
+import { ServerUser } from "@/lib/ServerUser";
 
 const ProfilePage = async () => {
   const user = await ServerUser();
@@ -68,17 +69,17 @@ const ProfilePage = async () => {
                 <AddLeftProfileDialog />
               ))}
 
-            <Profile />
+            <NavProfileEdit />
           </div>
         </div>
 
         {/* Main Profile Card */}
         <ProfileMediaSection />
 
-        {/* Student: shudhu User card. Teacher: User card + alada Teacher card. */}
+        {/* Student: shudhu User card. Teacher: Column-wise User card + Teacher card. */}
         {role !== "admin" &&
           (role === "teachers" ? (
-            <div className="grid items-start gap-4 md:grid-cols-2 md:gap-5">
+            <div className="flex flex-col gap-4 md:gap-5">
               {userProfile ? (
                 <UserProfileCard
                   profile={userProfile}
@@ -113,6 +114,29 @@ const ProfilePage = async () => {
               details.
             </EmptyCard>
           ))}
+
+        {user?.role === "admin" ? (
+          <div className="space-y-6">
+            <AdminProfileBioCard />
+
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+              <div className="lg:col-span-6">
+                <AdminAccountMetaCard
+                  meta={{
+                    name: user.name,
+                    email: user.email,
+                    role: user.role,
+                  }}
+                />
+              </div>
+              <div className="lg:col-span-6">
+                <AdminQuickActionsCard />
+              </div>
+            </div>
+          </div>
+        ) : (
+          ""
+        )}
       </div>
     </main>
   );

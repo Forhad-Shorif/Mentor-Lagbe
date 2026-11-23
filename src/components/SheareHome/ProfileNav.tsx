@@ -46,7 +46,7 @@ const ProfileNav = () => {
     return (
       <div
         aria-hidden="true"
-        className="h-10 w-36 animate-pulse rounded-full bg-teal-100/70 dark:bg-white/10"
+        className="h-10 w-10 animate-pulse rounded-full bg-teal-100/70 sm:w-36 dark:bg-white/10"
       />
     );
   }

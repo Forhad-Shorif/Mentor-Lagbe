@@ -5,7 +5,7 @@ import React, { Suspense } from 'react';
 // eta ke <Suspense> diye wrap korte hoy.
 const page = () => {
     return (
-        <main className="min-h-screen w-full relative overflow-hidden bg-[#030712] selection:bg-indigo-500 selection:text-white flex items-center justify-center">
+        <main className="min-h-screen w-full relative overflow-hidden bg-[#030712] selection:bg-indigo-500 selection:text-white flex items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
             
             {/* Ambient Background Glowing Orbs for Modern Vibe */}
             <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-indigo-600/15 rounded-full blur-[140px] pointer-events-none animate-pulse"></div>

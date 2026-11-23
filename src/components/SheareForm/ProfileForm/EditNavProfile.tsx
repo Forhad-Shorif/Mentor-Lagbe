@@ -16,7 +16,7 @@ import { showToast } from "@/lib/utils/toast";
 import { authClient } from "@/lib/auth-client";
 import ClientUser from "@/lib/ClientUser";
 
-export default function Profile() {
+export default function NavProfileEdit() {
   const router = useRouter();
   const user = ClientUser() as { name?: string | null } | null;
 

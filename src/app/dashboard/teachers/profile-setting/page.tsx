@@ -1,6 +1,4 @@
 import React from "react";
-import ServerUser from "@/lib/ServerUser";
-import ProfileMediaSection from "@/components/SheareForm/ProfileForm/ImageFeild";
 import UserProfileCard from "@/components/SheareForm/ProfileForm/UserProfile";
 import TeacherProfileCard from "@/components/SheareForm/ProfileForm/TeacherProfile";
 import {
@@ -12,14 +10,19 @@ import EditTeacherProfileDialog from "@/components/SheareForm/ProfileForm/EditTe
 import AddTeacherProfileDialog from "@/components/SheareForm/ProfileForm/Teacher-Form";
 import EditLeftProfileDialog from "@/components/SheareForm/ProfileForm/EditLeftProfileDialog";
 import AddLeftProfileDialog from "@/components/SheareForm/ProfileForm/Parsonal-Form";
+import TutorBioBox from "@/components/SheareDashboard/SheareTeacher/Tutions/TutorBioBox";
 import TeacherPlanSection from "@/components/SheareDashboard/SheareTeacher/TeacherPlanSection";
+import { ServerUser } from "@/lib/ServerUser";
+
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export default async function TeacherProfilePage() {
   const user = await ServerUser();
 
   if (!user) {
     return (
-      <main className="min-h-screen bg-slate-50 p-4 text-slate-900 transition-colors dark:bg-slate-950 dark:text-slate-100 md:p-8">
+      <main className="w-full text-slate-900 transition-colors dark:text-slate-100">
         <div className="mx-auto max-w-4xl rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
           Please sign in to view your teacher profile.
         </div>
@@ -28,13 +31,30 @@ export default async function TeacherProfilePage() {
   }
 
   const role = getRole(user.role);
-  const email = user.email || "";
+  const email = String(user.email || "").trim().toLowerCase();
 
   const userProfile = role !== "admin" ? await getUserProfile(email) : null;
   const teacherProfile = await getTeacherProfile(email);
 
+  let initialBio = "";
+
+  if (email) {
+    try {
+      const res = await fetch(
+        `${API_BASE}/GetBio?email=${encodeURIComponent(email)}`,
+        { cache: "no-store" }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        initialBio = String(data?.bio || "");
+      }
+    } catch {
+      initialBio = "";
+    }
+  }
+
   return (
-    <main className="min-h-screen bg-slate-50 p-4 text-slate-900 transition-colors dark:bg-slate-950 dark:text-slate-100 md:p-8">
+    <main className="w-full text-slate-900 transition-colors dark:text-slate-100">
       <div className="mx-auto max-w-5xl space-y-5">
         {/* Top Header with Post / Update Profile Actions */}
         <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white/90 px-4 py-4 shadow-sm backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-900/70 sm:px-5 md:flex-row md:items-center md:justify-between">
@@ -62,8 +82,15 @@ export default async function TeacherProfilePage() {
           </div>
         </div>
 
-        {/* User Profile + Teacher Profile Cards */}
-        <div className="grid items-start gap-4 md:grid-cols-2 md:gap-5">
+        {/* Tutor Bio Section */}
+        <TutorBioBox
+          userId={String((user as { _id?: string })?._id || "")}
+          email={email}
+          initialBio={initialBio}
+        />
+
+        {/* User Profile + Teacher Profile Cards (Column-wise) */}
+        <div className="flex flex-col gap-4 md:gap-5">
           {userProfile ? (
             <UserProfileCard
               profile={userProfile}

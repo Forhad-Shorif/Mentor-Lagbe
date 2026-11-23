@@ -17,8 +17,8 @@ import {
     Trash2,
     XCircle,
 } from "lucide-react";
-import DeleteTuitionDialog from "./DeleteTuitionDialog";
-import EditTuitionDialog from "./EditTuitionDialog";
+import DeleteTuitionDialog from "./Tutions/DeleteTuitionDialog";
+import EditTuitionDialog from "./Tutions/EditTuitionDialog";
 
 export interface TuitionItem {
     _id: string;
@@ -54,7 +54,7 @@ export default function MyTuitionsList({ initialTuitions }: MyTuitionsListProps)
     const [deleteId, setDeleteId] = useState<string | null>(null);
 
     const backendUrl =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
     const totalCount = tuitions.length;
     const activeCount = tuitions.filter((t) => t.status === "active").length;
@@ -68,7 +68,7 @@ export default function MyTuitionsList({ initialTuitions }: MyTuitionsListProps)
 
         try {
             setBusyId(item._id);
-            const res = await fetch(`${backendUrl}/Tuitions/${item._id}/status`, {
+            const res = await fetch(`${backendUrl}/TuitionsStutus/${item._id}/status`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ status: nextStatus }),
@@ -178,7 +178,8 @@ export default function MyTuitionsList({ initialTuitions }: MyTuitionsListProps)
                     </p>
                 </div>
             ) : (
-                <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white/95 shadow-xs dark:border-slate-800/90 dark:bg-slate-900/75 dark:shadow-[0_0_30px_rgba(6,182,212,0.06)]">
+                <>
+                <div className="hidden overflow-hidden rounded-2xl border border-slate-200/90 bg-white/95 shadow-xs dark:border-slate-800/90 dark:bg-slate-900/75 dark:shadow-[0_0_30px_rgba(6,182,212,0.06)] lg:block">
                     <div className="overflow-x-auto">
                         <table className="w-full border-collapse text-left">
                             <thead>
@@ -321,6 +322,129 @@ export default function MyTuitionsList({ initialTuitions }: MyTuitionsListProps)
                         </table>
                     </div>
                 </div>
+
+                {/* Mobile / tablet card view (table only shows from lg) */}
+                <div className="space-y-3 lg:hidden">
+                    {tuitions.map((item) => {
+                        const isActive = item.status === "active";
+                        const isBusy = busyId === item._id;
+                        const thumbSrc = item.logoImageURL || item.coverImageURL;
+
+                        return (
+                            <article
+                                key={item._id}
+                                className="rounded-2xl border border-slate-200/90 bg-white/95 p-4 shadow-xs transition-colors dark:border-slate-800/90 dark:bg-slate-900/75"
+                            >
+                                <div className="flex items-start gap-3">
+                                    <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-950">
+                                        {thumbSrc ? (
+                                            <img
+                                                src={thumbSrc}
+                                                alt={item.title}
+                                                className="h-full w-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="flex h-full w-full items-center justify-center bg-teal-600/10 text-teal-800 dark:bg-cyan-400/10 dark:text-cyan-300">
+                                                <BookOpen className="h-5 w-5" />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="min-w-0 flex-1">
+                                        <p className="line-clamp-2 text-sm font-bold text-slate-900 dark:text-white">
+                                            {item.title}
+                                        </p>
+                                        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500 dark:text-slate-400">
+                                            <span className="inline-flex min-w-0 items-center gap-1">
+                                                <MapPin className="h-3.5 w-3.5 shrink-0 text-teal-700 dark:text-cyan-400" />
+                                                <span className="truncate">
+                                                    {item.location || item.deliveryMode || "Online"}
+                                                </span>
+                                            </span>
+                                            {item.weeklyClasses && (
+                                                <span className="inline-flex items-center gap-1">
+                                                    <Calendar className="h-3.5 w-3.5 shrink-0 text-teal-700 dark:text-cyan-400" />
+                                                    <span>{item.weeklyClasses}</span>
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="mt-3 flex flex-wrap items-center gap-2">
+                                    <span className="rounded-md bg-teal-600/10 px-2.5 py-0.5 text-[11px] font-semibold text-teal-800 dark:bg-cyan-400/10 dark:text-cyan-300">
+                                        {item.subject || "General"}
+                                    </span>
+                                    <span className="inline-flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400">
+                                        <GraduationCap className="h-3.5 w-3.5" />
+                                        <span>{item.classLevel || "All Levels"}</span>
+                                    </span>
+                                    <span className="ml-auto text-sm font-extrabold text-slate-900 dark:text-white">
+                                        ৳{Number(item.monthlyFee || 0).toLocaleString()}
+                                        <span className="ml-0.5 text-[10px] font-normal text-slate-400">
+                                            /mo
+                                        </span>
+                                    </span>
+                                </div>
+
+                                <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-slate-200/70 pt-3 dark:border-slate-800/80">
+                                    <div className="flex flex-wrap items-center gap-1.5">
+                                        {renderBadge(item.verificationStatus)}
+
+                                        <button
+                                            type="button"
+                                            disabled={isBusy}
+                                            onClick={() => handleStatusToggle(item)}
+                                            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition disabled:opacity-50 ${
+                                                isActive
+                                                    ? "border-teal-600/30 bg-teal-500/10 text-teal-800 hover:bg-teal-500/20 dark:border-cyan-400/35 dark:bg-cyan-400/10 dark:text-cyan-300 dark:hover:bg-cyan-400/20"
+                                                    : "border-slate-300 bg-slate-100 text-slate-700 hover:bg-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                                            }`}
+                                        >
+                                            <Power className="h-3 w-3" />
+                                            <span>{isActive ? "Active" : "Closed"}</span>
+                                        </button>
+                                    </div>
+
+                                    <div className="flex items-center gap-1.5">
+                                        <Link
+                                            href={`/view/${item._id}`}
+                                            title="View"
+                                            className="rounded-lg border border-slate-200 p-2 text-slate-600 transition hover:border-teal-600 hover:text-teal-700 dark:border-slate-800 dark:text-slate-300 dark:hover:border-cyan-400 dark:hover:text-cyan-300"
+                                        >
+                                            <Eye className="h-4 w-4" />
+                                        </Link>
+
+                                        <button
+                                            type="button"
+                                            title="Edit"
+                                            onClick={() => {
+                                                setSelectedTuition(item);
+                                                setEditOpen(true);
+                                            }}
+                                            className="rounded-lg border border-slate-200 p-2 text-slate-600 transition hover:border-teal-600 hover:text-teal-700 dark:border-slate-800 dark:text-slate-300 dark:hover:border-cyan-400 dark:hover:text-cyan-300"
+                                        >
+                                            <Pencil className="h-4 w-4" />
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            title="Delete"
+                                            onClick={() => {
+                                                setDeleteId(item._id);
+                                                setDeleteOpen(true);
+                                            }}
+                                            className="rounded-lg border border-slate-200 p-2 text-slate-600 transition hover:border-rose-500 hover:text-rose-600 dark:border-slate-800 dark:text-slate-300 dark:hover:border-rose-400 dark:hover:text-rose-400"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </article>
+                        );
+                    })}
+                </div>
+                </>
             )}
 
             {/* Dialog ekbar render hoy; row er Edit/Delete button theke open hoy */}

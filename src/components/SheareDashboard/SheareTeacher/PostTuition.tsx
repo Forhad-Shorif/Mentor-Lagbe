@@ -119,7 +119,7 @@ export default function PostTuitionForm() {
       };
 
       const backendUrl =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
       const res = await fetch(`${backendUrl}/TuitionsPost`, {
         method: "POST",

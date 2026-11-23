@@ -95,9 +95,12 @@ export default async function ViewDetiailsPage({ params }: PageProps) {
   let res: Response;
 
   try {
-    res = await fetch(`${backendUrl()}/Tuitions/${encodeURIComponent(id)}`, {
-      cache: "no-store",
-    });
+    res = await fetch(
+      `${backendUrl()}/TuitionsDetails/${encodeURIComponent(id)}`,
+      {
+        cache: "no-store",
+      }
+    );
   } catch (error) {
     // Backend bondho thakle page crash na kore friendly message dekhai
     console.error("Failed to fetch tuition details:", error);

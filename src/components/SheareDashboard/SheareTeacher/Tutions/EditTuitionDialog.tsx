@@ -51,7 +51,7 @@ export default function EditTuitionDialog({
   }, [tuition]);
 
   const backendUrl =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
