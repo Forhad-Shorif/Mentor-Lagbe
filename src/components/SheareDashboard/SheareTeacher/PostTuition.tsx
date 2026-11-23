@@ -50,6 +50,7 @@ export default function PostTuitionForm() {
   const [highlightsInput, setHighlightsInput] = useState(
     "Live Doubt Solving, Practical Projects, Weekly Practice"
   );
+  const [formKey, setFormKey] = useState(0);
 
   const highlightTags = highlightsInput
     .split(",")
@@ -83,9 +84,9 @@ export default function PostTuitionForm() {
     e.preventDefault();
     setSubmitting(true);
 
-    try {
-      const formData = new FormData(e.currentTarget);
+    const formData = new FormData(e.currentTarget);
 
+    try {
       let coverImageURL = "";
       if (coverImageFile) {
         coverImageURL = await uploadToImgBB(coverImageFile);
@@ -128,11 +129,14 @@ export default function PostTuitionForm() {
       });
 
       if (!res.ok) {
-        throw new Error("Failed to publish tuition");
+        const errorData = await res.json().catch(() => null);
+        throw new Error(errorData?.message || "Failed to publish tuition");
       }
 
       showToast.success("Tuition published successfully!");
-      e.currentTarget.reset();
+
+      // .reset() ছাড়াই ফর্ম ও স্টেট অটো ক্লিয়ার
+      setFormKey((prev) => prev + 1);
       setCoverImageFile(null);
       setLogoImageFile(null);
       setTitlePreview("");
@@ -141,12 +145,13 @@ export default function PostTuitionForm() {
       setDeadlinePreview("Open");
     } catch (error) {
       console.error("Submit error:", error);
-      showToast.error("Could not publish tuition");
+      showToast.error(
+        error instanceof Error ? error.message : "Could not publish tuition"
+      );
     } finally {
       setSubmitting(false);
     }
   };
-
   const inputClass =
     "w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all duration-200 focus:border-teal-600 focus:bg-white focus:ring-4 focus:ring-teal-500/15 dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:border-cyan-400 dark:focus:bg-slate-950 dark:focus:ring-cyan-400/15";
 
@@ -158,6 +163,7 @@ export default function PostTuitionForm() {
 
   return (
     <form
+      key={formKey}
       onSubmit={handleSubmit}
       className="mx-auto max-w-6xl space-y-6 text-slate-900 dark:text-slate-100"
     >
