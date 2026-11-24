@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Edit3, Save, Sparkles, Trash2, X } from "lucide-react";
-import { toast } from "react-toastify";
+import { showToast } from "@/lib/utils/toast";
 
 interface TutorBioBoxProps {
   userId?: string;
@@ -14,8 +14,7 @@ const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 function showBioToast(type: "success" | "error", message: string) {
-  toast.dismiss("tutor-profile-bio");
-  toast[type](message, { toastId: "tutor-profile-bio" });
+  showToast[type](message, { id: "tutor-profile-bio" });
 }
 
 export default function TutorBioBox({

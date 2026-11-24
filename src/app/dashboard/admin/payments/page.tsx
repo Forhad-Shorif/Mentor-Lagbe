@@ -8,7 +8,7 @@ const API_BASE =
 
 async function getInitialPayments(): Promise<AdminPaymentItem[]> {
   try {
-    const res = await fetch(`${API_BASE}/GetPayments`, { cache: "no-store" });
+    const res = await fetch(`${API_BASE}/AdminViewPayments`, { cache: "no-store" });
     if (!res.ok) return [];
     const data = await res.json();
     if (Array.isArray(data)) return data;

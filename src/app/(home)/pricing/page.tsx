@@ -7,7 +7,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import TeacherPlanSection from "@/components/SheareDashboard/SheareTeacher/TeacherPlanSection";
-import StudentPlanSection from "@/components/SheareDashboard/SheareStudents/OverView/StudentPlanSection";
+import StudentPlanSection from "@/components/SheareDashboard/SheareStudents/StudentPlanSection";
 import { ServerUser } from "@/lib/ServerUser";
 
 export default async function PricingPage() {
@@ -15,7 +15,8 @@ export default async function PricingPage() {
   const rawRole = String(user?.role || "").toLowerCase();
 
   const isTeacher = rawRole === "teacher" || rawRole === "teachers";
-  const isStudent = rawRole === "user" || rawRole === "student";
+  const isStudent =
+    rawRole === "user" || rawRole === "student" || rawRole === "students";
   const showBoth = !isTeacher && !isStudent;
 
   const showStudentPlan = isStudent || showBoth;

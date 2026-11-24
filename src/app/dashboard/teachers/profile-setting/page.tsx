@@ -5,7 +5,6 @@ import {
   getTeacherProfile,
   getUserProfile,
 } from "@/components/SheareForm/ProfileForm/ActionProfile";
-import { getRole } from "@/lib/roles";
 import EditTeacherProfileDialog from "@/components/SheareForm/ProfileForm/EditTeacherProfileDialog";
 import AddTeacherProfileDialog from "@/components/SheareForm/ProfileForm/Teacher-Form";
 import EditLeftProfileDialog from "@/components/SheareForm/ProfileForm/EditLeftProfileDialog";
@@ -30,10 +29,10 @@ export default async function TeacherProfilePage() {
     );
   }
 
-  const role = getRole(user.role);
   const email = String(user.email || "").trim().toLowerCase();
 
-  const userProfile = role !== "admin" ? await getUserProfile(email) : null;
+  // Ei page teacher layout er vitore, tai role guard already hoye geche.
+  const userProfile = await getUserProfile(email);
   const teacherProfile = await getTeacherProfile(email);
 
   let initialBio = "";

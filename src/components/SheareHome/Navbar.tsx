@@ -15,7 +15,6 @@ import {
 
 import { cn } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
-import { getDashboardHref } from "@/lib/roles";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -36,6 +35,18 @@ const navLinks = [
 ];
 
 // Home link shudhu exact "/" e active hobe, baki link nijer path diye shuru holei active.
+// Role onujayi dashboard er link. Role na porichito hole home e pathai —
+// kono "students" fallback nei, tai bhul role er user students page e bounce kore na.
+const getDashboardHref = (role?: string) => {
+  const value = String(role || "").toLowerCase();
+
+  if (value === "students" || value === "student") return "/dashboard/students";
+  if (value === "teachers" || value === "teacher") return "/dashboard/teachers";
+  if (value === "admin") return "/dashboard/admin";
+
+  return "/";
+};
+
 const isActiveLink = (pathname: string, href: string) =>
   href === "/" ? pathname === "/" : pathname.startsWith(href);
 

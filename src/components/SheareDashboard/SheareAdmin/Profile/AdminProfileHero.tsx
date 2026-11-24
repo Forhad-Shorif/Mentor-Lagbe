@@ -12,7 +12,7 @@ import {
   UserPlus,
   X,
 } from "lucide-react";
-import { toast } from "react-toastify";
+import { showToast } from "@/lib/utils/toast";
 
 export interface AdminHeroProfile {
   _id?: string;
@@ -27,8 +27,7 @@ const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 function notifyAdminBio(type: "success" | "error", msg: string) {
-  toast.dismiss("admin-bio-toast");
-  toast[type](msg, { toastId: "admin-bio-toast" });
+  showToast[type](msg, { id: "admin-bio-toast" });
 }
 
 export default function AdminProfileHero({

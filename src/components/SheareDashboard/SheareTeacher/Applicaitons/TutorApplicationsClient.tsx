@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import { CheckCircle2, Filter, Search, Sparkles, XCircle } from "lucide-react";
-import { toast } from "react-toastify";
+import { showToast } from "@/lib/utils/toast";
 import {
     Dialog,
     DialogContent,
@@ -97,11 +97,11 @@ export default function TutorApplicationsClient({
                 throw new Error(data?.message || "Failed to update status");
             }
 
-            toast.success(data?.message || `Application ${normalizedStatus}`);
+            showToast.success(data?.message || `Application ${normalizedStatus}`);
             setSelectedApp(null);
         } catch (err) {
             setApplications(prev);
-            toast.error(
+            showToast.error(
                 err instanceof Error ? err.message : "Could not update status"
             );
         } finally {

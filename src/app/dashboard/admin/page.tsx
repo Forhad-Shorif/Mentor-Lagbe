@@ -5,12 +5,25 @@ import {
   BookOpen,
   CreditCard,
   LayoutDashboard,
+  ShieldCheck,
+  UserCheck,
   Users,
+  Wallet,
 } from "lucide-react";
-import AdminOverviewStats, { OverviewData } from "@/components/SheareDashboard/SheareAdmin/AdminOverviewStats";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+interface OverviewData {
+  totalUsers: number;
+  paidUsers: number;
+  blockedUsers: number;
+  totalTuitions: number;
+  activeTuitions: number;
+  approvedTuitions: number;
+  totalPayments: number;
+  paidRevenue: number;
+}
 
 async function fetchJsonSafe(url: string) {
   try {
@@ -31,7 +44,7 @@ async function getOverviewData(): Promise<OverviewData> {
   const [users, tuitions, payments] = await Promise.all([
     fetchJsonSafe(`${API_BASE}/GetUsers`),
     fetchJsonSafe(`${API_BASE}/TuitionsSearch?limit=200`),
-    fetchJsonSafe(`${API_BASE}/GetPayments`),
+    fetchJsonSafe(`${API_BASE}/AdminViewPayments`),
   ]);
 
   const totalUsers = users.length;
@@ -52,11 +65,19 @@ async function getOverviewData(): Promise<OverviewData> {
   ).length;
 
   const totalPayments = payments.length;
-  const paidRevenue = payments.reduce((sum: number, p: { amount?: number | string; status?: string }) => {
-    const s = String(p?.status || "").toLowerCase();
-    const isPaid = s === "paid" || s === "completed" || s === "success";
-    return isPaid ? sum + (Number(p?.amount) || 0) : sum;
-  }, 0);
+  const paidRevenue = payments.reduce(
+    (
+      sum: number,
+      p: { amount?: number | string; amountTotal?: number | string; status?: string }
+    ) => {
+      const s = String(p?.status || "").toLowerCase();
+      const isPaid = s === "paid" || s === "completed" || s === "success";
+      if (!isPaid) return sum;
+      const value = Number(p?.amountTotal ?? p?.amount) || 0;
+      return sum + value;
+    },
+    0
+  );
 
   return {
     totalUsers,
@@ -117,7 +138,58 @@ export default async function AdminOverviewPage() {
         </div>
 
         {/* Real Stats Cards */}
-        <AdminOverviewStats data={overviewData} />
+        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-4">
+          {[
+            {
+              label: "Total Users",
+              value: overviewData.totalUsers,
+              hint: `${overviewData.paidUsers} pro · ${overviewData.blockedUsers} blocked`,
+              icon: Users,
+            },
+            {
+              label: "Total Tuitions",
+              value: overviewData.totalTuitions,
+              hint: `${overviewData.activeTuitions} active`,
+              icon: BookOpen,
+            },
+            {
+              label: "Approved Tuitions",
+              value: overviewData.approvedTuitions,
+              hint: "Verified by admin",
+              icon: ShieldCheck,
+            },
+            {
+              label: "Paid Revenue",
+              value: `$${overviewData.paidRevenue.toLocaleString()}`,
+              hint: `${overviewData.totalPayments} payment records`,
+              icon: Wallet,
+            },
+          ].map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <div
+                key={stat.label}
+                className="rounded-2xl border border-amber-400/30 bg-white/85 p-4 shadow-2xs backdrop-blur-md dark:border-amber-400/20 dark:bg-slate-900/70"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
+                    {stat.label}
+                  </p>
+                  <span className="grid size-8 place-items-center rounded-xl border border-amber-400/35 bg-amber-400/15 text-amber-800 dark:text-amber-300">
+                    <Icon className="size-4" />
+                  </span>
+                </div>
+                <p className="mt-2 text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+                  {stat.value}
+                </p>
+                <p className="mt-1 inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                  <UserCheck className="size-3 text-amber-600 dark:text-amber-400" />
+                  {stat.hint}
+                </p>
+              </div>
+            );
+          })}
+        </div>
 
         {/* Quick Navigation Cards */}
         <div className="grid grid-cols-1 gap-3.5 md:grid-cols-3">

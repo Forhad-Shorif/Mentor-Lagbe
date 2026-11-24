@@ -9,7 +9,7 @@ import {
   RefreshCw,
   Trash2,
 } from "lucide-react";
-import { toast } from "react-toastify";
+import { showToast } from "@/lib/utils/toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -42,8 +42,7 @@ function isPaidStatus(status?: string) {
 }
 
 function notifyOnce(type: "success" | "error", id: string, message: string) {
-  toast.dismiss(id);
-  toast[type](message, { toastId: id });
+  showToast[type](message, { id });
 }
 
 export default function AdminPaymentsView({

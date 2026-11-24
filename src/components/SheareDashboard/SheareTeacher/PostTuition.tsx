@@ -22,13 +22,18 @@ import {
 } from "lucide-react";
 import ClientUser from "@/lib/ClientUser";
 import { showToast } from "@/lib/utils/toast";
+import { useTuitionPostLimit } from "./useTuitionPostLimit";
 
 export default function PostTuitionForm() {
   const user = ClientUser() as {
     id?: string;
     email?: string;
     name?: string;
+    role?: string;
   } | null;
+
+  const { checkingLimit, currentReturnTo, checkCanPostTuition, redirectToPricing } =
+    useTuitionPostLimit();
 
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
   const [logoImageFile, setLogoImageFile] = useState<File | null>(null);
@@ -52,6 +57,9 @@ export default function PostTuitionForm() {
   );
   const [formKey, setFormKey] = useState(0);
 
+  const backendUrl =
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
   const highlightTags = highlightsInput
     .split(",")
     .map((item) => item.trim())
@@ -72,18 +80,38 @@ export default function PostTuitionForm() {
       body: uploadData,
     });
 
-    const data = await res.json();
-    if (!data?.success || !data?.data?.display_url) {
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !data?.success || !data?.data?.display_url) {
       throw new Error("Failed to upload image to ImgBB");
     }
 
     return String(data.data.display_url);
   };
 
+  // হিন্ট: Publish বাটনে ক্লিক করলে auth, role এবং ২টি ফ্রি পোস্টের সীমা চেক করে সাবমিট করা হচ্ছে।
+  // হিন্ট: বাটন disabled না রেখে লিমিট পার হলে সরাসরি Pricing পেজে পাঠাতে।
+  // হিন্ট: checkCanPostTuition() দিয়ে যাচাই করে ঠিক থাকলে /TuitionsPost-এ POST পাঠায়।
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSubmitting(true);
 
+    if (!user?.email) {
+      showToast.error("Please sign in as a teacher to post a tuition");
+      return;
+    }
+
+    // BetterAuth e role "teachers" hisebe save hoy, tai duita value i allow kori.
+    const role = String(user.role || "").toLowerCase();
+    if (role && role !== "teacher" && role !== "teachers") {
+      showToast.error("Only Teacher accounts can post tuitions!");
+      return;
+    }
+
+    if (submitting || checkingLimit) return;
+
+    const allowedByLimit = await checkCanPostTuition(user.email);
+    if (!allowedByLimit) return;
+
+    setSubmitting(true);
     const formData = new FormData(e.currentTarget);
 
     try {
@@ -114,13 +142,11 @@ export default function PostTuitionForm() {
         coverImageURL,
         logoImageURL,
         name: user?.name || "Teacher",
-        email: user?.email || "",
+        email: user?.email,
         mentorId: user?.id || "",
+        returnTo: currentReturnTo,
         createdAt: new Date().toISOString(),
       };
-
-      const backendUrl =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
       const res = await fetch(`${backendUrl}/TuitionsPost`, {
         method: "POST",
@@ -128,14 +154,26 @@ export default function PostTuitionForm() {
         body: JSON.stringify(payload),
       });
 
+      let errorData: { message?: string; limitReached?: boolean } | null = null;
       if (!res.ok) {
-        const errorData = await res.json().catch(() => null);
+        errorData = await res.json().catch(() => null);
+      }
+
+      if (
+        res.status === 402 ||
+        res.status === 403 ||
+        errorData?.limitReached
+      ) {
+        redirectToPricing(errorData?.message);
+        return;
+      }
+
+      if (!res.ok) {
         throw new Error(errorData?.message || "Failed to publish tuition");
       }
 
       showToast.success("Tuition published successfully!");
 
-      // .reset() ছাড়াই ফর্ম ও স্টেট অটো ক্লিয়ার
       setFormKey((prev) => prev + 1);
       setCoverImageFile(null);
       setLogoImageFile(null);
@@ -152,6 +190,7 @@ export default function PostTuitionForm() {
       setSubmitting(false);
     }
   };
+
   const inputClass =
     "w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all duration-200 focus:border-teal-600 focus:bg-white focus:ring-4 focus:ring-teal-500/15 dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:border-cyan-400 dark:focus:bg-slate-950 dark:focus:ring-cyan-400/15";
 
@@ -476,12 +515,15 @@ export default function PostTuitionForm() {
               </div>
             </div>
 
+            {/* বাটন লিমিট বা লগইনের জন্য disable থাকবে না; ক্লিক করলে হ্যান্ডলার চেক করে প্রয়োজনে Pricing-এ পাঠাবে */}
             <button
               type="submit"
               disabled={submitting}
               className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-teal-700 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 disabled:opacity-60 dark:bg-cyan-400 dark:text-slate-950 dark:hover:bg-cyan-300"
             >
-              {submitting ? (
+              {checkingLimit ? (
+                <span>Checking limit...</span>
+              ) : submitting ? (
                 <span>Publishing...</span>
               ) : (
                 <>

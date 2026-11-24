@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowRight,
   CheckCircle2,
@@ -15,26 +16,62 @@ import { showToast } from "@/lib/utils/toast";
 interface TeacherPlanSectionProps {
   teacherEmail?: string;
   teacherId?: string;
+  teacherName?: string;
+  teacherImage?: string;
   currentPlan?: "starter" | "pro";
+  returnTo?: string;
 }
 
 export default function TeacherPlanSection({
   teacherEmail,
   teacherId,
+  teacherName = "",
+  teacherImage = "",
   currentPlan = "starter",
+  returnTo,
 }: TeacherPlanSectionProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+
   const [loadingPlan, setLoadingPlan] = useState<"starter" | "pro" | null>(
     null
   );
   const [billingCycle, setBillingCycle] = useState<"monthly" | "quarterly">(
     "monthly"
   );
+  const [isActiveFromBackend, setIsActiveFromBackend] = useState(
+    currentPlan === "pro"
+  );
 
-  const backendUrl =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  // হিন্ট (কী): ব্যাকএন্ড URL এবং পেমেন্ট শেষে ফেরার ঠিকানা (returnTo) নির্ধারণ করা হচ্ছে।
+  // হিন্ট (কেন): পেমেন্ট শেষে ইউজার যেন আগের পেজে ফিরতে পারে এবং ব্যাকএন্ডে সঠিক URL-এ রিকোয়েস্ট যায়।
+  // হিন্ট (কীভাবে): props-এ returnTo না থাকলে বর্তমান pathname নেওয়া হচ্ছে।
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL 
+  
+  const targetReturnTo = returnTo || pathname || "/dashboard";
 
   const proPrice = billingCycle === "monthly" ? 15 : 39;
+  const durationDays = billingCycle === "monthly" ? 30 : 90;
+  const planKey = billingCycle === "monthly" ? "teacher_1m" : "teacher_3m";
   const amountInCents = proPrice * 100;
+
+  // হিন্ট (কী): টিচারের ইমেইল থাকলে ব্যাকএন্ড থেকে প্ল্যানের মেয়াদ ও active অবস্থা যাচাই করা হচ্ছে।
+  // হিন্ট (কেন): মেয়াদ শেষ হলে যেন আবার আপগ্রেড করতে পারে এবং active থাকলে ডুপ্লিকেট পেমেন্ট না হয়।
+  // হিন্ট (কীভাবে): /GetPlanStatus/:email কল করে isActivePlan state আপডেট করা হচ্ছে।
+  useEffect(() => {
+    if (!teacherEmail) return;
+
+    fetch(`${backendUrl}/GetPlanStatus/${encodeURIComponent(teacherEmail)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (typeof data?.isActivePlan === "boolean") {
+          setIsActiveFromBackend(data.isActivePlan);
+        }
+      })
+      .catch(() => {
+        // ব্যাকএন্ড থেকে স্ট্যাটাস না এলে currentPlan prop-এর ওপর নির্ভর করবে
+      });
+  }, [backendUrl, teacherEmail]);
 
   const handleStripeUpgrade = async (plan: "starter" | "pro") => {
     if (plan === "starter") {
@@ -44,29 +81,71 @@ export default function TeacherPlanSection({
       return;
     }
 
+    // হিন্ট (কী): লগইন না থাকলে returnTo সহ login পেজে পাঠানোর guard।
+    // হিন্ট (কেন): ইমেইল ছাড়া পেমেন্ট বা রশিদ ইউজারের সাথে যুক্ত করা যাবে না।
+    // হিন্ট (কীভাবে): teacherEmail না থাকলে /login-এ redirect করা হচ্ছে।
+    if (!teacherEmail) {
+      showToast.error("Please log in as a teacher first.");
+      const nextUrl = `${pathname}?returnTo=${encodeURIComponent(targetReturnTo)}`;
+      router.push(`/login?callbackUrl=${encodeURIComponent(nextUrl)}`);
+      return;
+    }
+
+    // হিন্ট (কী): আগে থেকেই active plan থাকলে ডুপ্লিকেট চেকআউট আটকে দেওয়া হচ্ছে।
+    // হিন্ট (কেন): মেয়াদ থাকা অবস্থায় ভুল করে দুবার পেমেন্ট হওয়া ঠেকাতে।
+    // হিন্ট (কীভাবে): isActiveFromBackend সত্য হলে এখানেই থামিয়ে toast দেখানো হচ্ছে।
+    if (isActiveFromBackend) {
+      showToast.error("Your Teacher Pro plan is already active.");
+      return;
+    }
+
     try {
       setLoadingPlan(plan);
 
-      const res = await fetch(
-        `${backendUrl}/api/stripe/create-checkout-session`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            plan: "teacher_pro",
-            billingCycle,
-            amount: amountInCents,
-            email: teacherEmail || "",
-            userId: teacherId || "",
-          }),
-        }
-      );
+      const payload = {
+        email: teacherEmail,
+        name: teacherName,
+        image: teacherImage,
+        role: "teacher",
+        planKey,
+        billingCycle,
+        durationDays,
+        amount: amountInCents,
+        userId: teacherId || "",
+        returnTo: targetReturnTo,
+      };
 
-      const data = await res.json();
+      // হিন্ট (কী): Stripe-এ যাওয়ার আগে payment: false দিয়ে pending রেকর্ড সেভ করা হচ্ছে।
+      // হিন্ট (কেন): ইউজার পেমেন্ট না করে ব্যাক করলে রেকর্ডটি payment: false হিসেবে থেকে যাবে।
+      // হিন্ট (কীভাবে): /PaymentPending এ POST রিকোয়েস্ট পাঠানো হচ্ছে।
+      const pendingRes = await fetch(`${backendUrl}/PaymentPending`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!pendingRes.ok) {
+        showToast.error("Could not initialize pending payment record");
+        return;
+      }
+
+      // হিন্ট (কী): Stripe Checkout Session তৈরি করে ইউজারকে Stripe পেজে পাঠানো হচ্ছে।
+      // হিন্ট (কেন): নিরাপদ কার্ড পেমেন্ট নেওয়ার জন্য Stripe Checkout Session URL দরকার।
+      // হিন্ট (কীভাবে): checkout route কল করে data.url পেলে window.location.href দিয়ে পাঠানো হচ্ছে।
+      const res = await fetch(`/api/checkout_sessions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json().catch(() => null);
 
       if (data?.url) {
+        sessionStorage.setItem("stripe_checkout_started", "true");
         window.location.href = data.url;
         return;
       }
@@ -102,22 +181,20 @@ export default function TeacherPlanSection({
           <button
             type="button"
             onClick={() => setBillingCycle("monthly")}
-            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-              billingCycle === "monthly"
+            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${billingCycle === "monthly"
                 ? "bg-cyan-600 text-white dark:bg-cyan-400 dark:text-slate-950"
                 : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-            }`}
+              }`}
           >
             Monthly
           </button>
           <button
             type="button"
             onClick={() => setBillingCycle("quarterly")}
-            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-              billingCycle === "quarterly"
+            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${billingCycle === "quarterly"
                 ? "bg-cyan-600 text-white dark:bg-cyan-400 dark:text-slate-950"
                 : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-            }`}
+              }`}
           >
             3 Months (Save $6)
           </button>
@@ -172,7 +249,7 @@ export default function TeacherPlanSection({
             onClick={() => handleStripeUpgrade("starter")}
             className="mt-6 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-900 sm:text-sm"
           >
-            {currentPlan === "starter" ? "Active: Free Starter" : "Starter Tier"}
+            {!isActiveFromBackend ? "Active: Free Starter" : "Starter Tier"}
           </button>
         </div>
 
@@ -251,9 +328,9 @@ export default function TeacherPlanSection({
 
           <button
             type="button"
-            disabled={loadingPlan === "pro"}
+            disabled={loadingPlan === "pro" || isActiveFromBackend}
             onClick={() => handleStripeUpgrade("pro")}
-            className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-600 to-teal-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:brightness-105 active:scale-[0.99] disabled:opacity-60 dark:from-cyan-400 dark:to-teal-400 dark:text-slate-950 dark:shadow-[0_0_24px_rgba(34,211,238,0.25)]"
+            className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-600 to-teal-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:brightness-105 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 dark:from-cyan-400 dark:to-teal-400 dark:text-slate-950 dark:shadow-[0_0_24px_rgba(34,211,238,0.25)]"
           >
             {loadingPlan === "pro" ? (
               <>
@@ -263,7 +340,7 @@ export default function TeacherPlanSection({
             ) : (
               <>
                 <span>
-                  {currentPlan === "pro" ? "Pro Plan Active" : "Update Plan"}
+                  {isActiveFromBackend ? "Pro Plan Active" : "Update Plan"}
                 </span>
                 <ArrowRight className="h-4 w-4" />
               </>

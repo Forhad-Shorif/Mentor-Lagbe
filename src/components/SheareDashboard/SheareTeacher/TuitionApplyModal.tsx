@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Clock,
   LogIn,
@@ -34,6 +35,13 @@ interface TuitionApplyModalProps {
 
 type SessionSlot = "Morning" | "Afternoon" | "Night";
 
+interface ApplyCountResponse {
+  applyCount?: number;
+  hasActivePlan?: boolean;
+  canApplyMore?: boolean;
+  freeLimit?: number;
+}
+
 const SESSION_OPTIONS: {
   label: SessionSlot;
   hint: string;
@@ -56,31 +64,165 @@ const SESSION_OPTIONS: {
   },
 ];
 
+// হিন্ট: open redirect ঠেকাতে শুধু "/" দিয়ে শুরু হওয়া safe path নেওয়া হচ্ছে
+function getSafeReturnPath(pathname: string, search: string): string {
+  const full = search ? `${pathname}?${search}` : pathname;
+  if (!full.startsWith("/") || full.startsWith("//")) return "/";
+  return full;
+}
+
 export default function TuitionApplyModal({
   open,
   onOpenChange,
   tuition,
 }: TuitionApplyModalProps) {
-  const user = ClientUser();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // হিন্ট: ClientUser থেকে ইউজারের তথ্য ও role নেওয়া হচ্ছে
+  const user = ClientUser() as {
+    id?: string;
+    name?: string;
+    email?: string;
+    role?: string;
+  } | null;
+
   const formRef = useRef<HTMLFormElement | null>(null);
 
   const [sessionTime, setSessionTime] = useState<SessionSlot>("Morning");
   const [submitting, setSubmitting] = useState(false);
+  const [checkingCount, setCheckingCount] = useState(false);
 
   const tuitionId = tuition._id || tuition.id || "";
   const mentorName = tuition.mentor?.name || "Verified Mentor";
   const backendUrl =
     process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
+  const currentReturnTo = getSafeReturnPath(pathname, searchParams.toString());
+  const pricingRedirectUrl = `/pricing?returnTo=${encodeURIComponent(
+    currentReturnTo
+  )}`;
+
+  // হিন্ট: /pricing পেজে পাঠানোর আগে modal বন্ধ করে নিরাপদে redirect করার helper
+  const redirectToPricingWithReturn = useCallback(
+    (msg: string) => {
+      showToast.info(msg);
+      onOpenChange(false);
+      router.push(pricingRedirectUrl);
+    },
+    [onOpenChange, pricingRedirectUrl, router]
+  );
+
+  // হিন্ট: ব্যাকএন্ড (/GetApplyCount/:email) থেকে স্টুডেন্টের apply count ও plan status আনার helper
+  const fetchApplyLimitStatus = useCallback(
+    async (email: string): Promise<ApplyCountResponse | null> => {
+      setCheckingCount(true);
+      try {
+        const res = await fetch(
+          `${backendUrl}/GetApplyCount/${encodeURIComponent(email)}`,
+          { cache: "no-store" }
+        );
+        if (!res.ok) return null;
+        return (await res.json()) as ApplyCountResponse;
+      } catch {
+        // হিন্ট: count endpoint-এ সাময়িক সমস্যা হলেও ইউজার যেন আটকে না যায়, তাই null ফেরত দেওয়া হচ্ছে
+        return null;
+      } finally {
+        setCheckingCount(false);
+      }
+    },
+    [backendUrl]
+  );
+
+  // হিন্ট: modal খুললেই Student চেক ও ২টার লিমিট যাচাই করা হচ্ছে
+  useEffect(() => {
+    if (!open) return;
+
+    if (!user?.email) {
+      showToast.error("Please sign in as a student to apply");
+      return;
+    }
+
+    if (
+      user.role &&
+      !["student", "students"].includes(user.role.toLowerCase())
+    ) {
+      showToast.error("Only Student accounts can apply for tuitions!");
+      onOpenChange(false);
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      const status = await fetchApplyLimitStatus(user.email!);
+      if (cancelled || !status) return;
+
+      const limit = status.freeLimit ?? 2;
+      const count = status.applyCount ?? 0;
+      const canApply =
+        typeof status.canApplyMore === "boolean"
+          ? status.canApplyMore
+          : Boolean(status.hasActivePlan) || count < limit;
+
+      if (!canApply) {
+        redirectToPricingWithReturn(
+          `আপনার ফ্রি ${limit}টি Apply সীমা শেষ। প্ল্যান নিতে Pricing পেজে যাওয়া হচ্ছে...`
+        );
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    open,
+    user?.email,
+    user?.role,
+    fetchApplyLimitStatus,
+    onOpenChange,
+    redirectToPricingWithReturn,
+  ]);
+
   const handleApplySubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    // ১. লগইন না থাকলে সরাসরি toast দিয়ে আটকে দেবে
     if (!user?.email) {
       showToast.error("Please sign in to apply for this tuition");
       return;
     }
 
-    if (submitting) return;
+    // ২. Student ছাড়া অন্য কেউ (যেমন Teacher বা Admin) apply করলে সরাসরি toast
+    if (
+      user.role &&
+      !["student", "students"].includes(user.role.toLowerCase())
+    ) {
+      showToast.error("Only Student accounts can apply for tuitions!");
+      onOpenChange(false);
+      return;
+    }
+
+    if (submitting || checkingCount) return;
+
+    // ৩. Submit করার ঠিক আগেও backend থেকে সর্বশেষ apply count যাচাই করা হচ্ছে
+    const latestStatus = await fetchApplyLimitStatus(user.email);
+    if (latestStatus) {
+      const limit = latestStatus.freeLimit ?? 2;
+      const count = latestStatus.applyCount ?? 0;
+      const canApply =
+        typeof latestStatus.canApplyMore === "boolean"
+          ? latestStatus.canApplyMore
+          : Boolean(latestStatus.hasActivePlan) || count < limit;
+
+      if (!canApply) {
+        redirectToPricingWithReturn(
+          `আপনার ফ্রি ${limit}টি Apply সীমা শেষ। প্ল্যান নিতে Pricing পেজে যাওয়া হচ্ছে...`
+        );
+        return;
+      }
+    }
+
     setSubmitting(true);
 
     try {
@@ -111,6 +253,7 @@ export default function TuitionApplyModal({
         phone,
         sessionTime,
         message,
+        returnTo: currentReturnTo,
       };
 
       const res = await fetch(`${backendUrl}/ApplyPost`, {
@@ -121,12 +264,25 @@ export default function TuitionApplyModal({
         body: JSON.stringify(payload),
       });
 
-      // Backend error dile response JSON na-o hote pare
-      let data: { message?: string } = {};
+      // হিন্ট: ব্যাকএন্ড থেকে valid JSON না এলেও crash না করে নিরাপদে parse করা হচ্ছে
+      let data: { message?: string; limitReached?: boolean } = {};
       try {
         data = await res.json();
       } catch {
         data = {};
+      }
+
+      // হিন্ট: ব্যাকএন্ড থেকেও limitReached বা 403/402 এলে returnTo সহ pricing পেজে পাঠাবে
+      if (
+        res.status === 402 ||
+        res.status === 403 ||
+        data?.limitReached
+      ) {
+        redirectToPricingWithReturn(
+          data?.message ||
+            "আপনার ফ্রি ২টি Apply সীমা শেষ। প্ল্যান নিতে Pricing পেজে যাওয়া হচ্ছে..."
+        );
+        return;
       }
 
       if (!res.ok) {
@@ -148,6 +304,8 @@ export default function TuitionApplyModal({
 
   const inputClass =
     "w-full rounded-xl border border-slate-200/90 bg-slate-50/90 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all focus:border-cyan-500 focus:bg-white focus:ring-4 focus:ring-cyan-500/15 dark:border-slate-800 dark:bg-slate-950/80 dark:text-white dark:placeholder-slate-500 dark:focus:border-cyan-400";
+
+  const isStudent = !user?.role || ["student", "students"].includes(user.role.toLowerCase());
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -175,7 +333,7 @@ export default function TuitionApplyModal({
           <div className="border-b border-amber-500/30 bg-amber-500/10 px-5 py-3 dark:border-amber-400/30 dark:bg-amber-400/10 sm:px-6">
             <Link
               href={`/sign-in?callbackUrl=${encodeURIComponent(
-                `/view/${tuitionId}`
+                currentReturnTo || `/view/${tuitionId}`
               )}`}
               className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-800 underline underline-offset-2 dark:text-amber-300"
             >
@@ -270,11 +428,17 @@ export default function TuitionApplyModal({
 
             <button
               type="submit"
-              disabled={submitting || !user}
+              disabled={submitting || checkingCount || !user || !isStudent}
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-600 to-teal-600 px-5 py-2.5 text-xs font-bold text-white shadow-sm transition hover:brightness-105 active:scale-[0.99] disabled:opacity-60 dark:from-cyan-400 dark:to-teal-400 dark:text-slate-950 dark:shadow-[0_0_20px_rgba(34,211,238,0.25)]"
             >
               <Send className="h-3.5 w-3.5" />
-              <span>{submitting ? "Sending..." : "Submit Application"}</span>
+              <span>
+                {checkingCount
+                  ? "Checking limit..."
+                  : submitting
+                  ? "Sending..."
+                  : "Submit Application"}
+              </span>
             </button>
           </DialogFooter>
         </form>

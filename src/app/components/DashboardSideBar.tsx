@@ -32,7 +32,25 @@ import {
 import { authClient } from "@/lib/auth-client"
 import { showToast } from "@/lib/utils/toast"
 import { cn } from "@/lib/utils"
-import { getRole, ROLE_LABEL, type UserRole } from "@/lib/roles"
+
+type UserRole = "students" | "teachers" | "admin"
+
+// Role na porichito hole null — kono "students" fallback nei.
+const getRole = (role?: string): UserRole | null => {
+    const value = String(role || "").toLowerCase()
+
+    if (value === "students" || value === "student") return "students"
+    if (value === "teachers" || value === "teacher") return "teachers"
+    if (value === "admin") return "admin"
+
+    return null
+}
+
+const ROLE_LABEL: Record<UserRole, string> = {
+    students: "Student",
+    teachers: "Teacher",
+    admin: "Admin",
+}
 
 type NavItem = {
     label: string
@@ -74,7 +92,8 @@ export function DashboardSidebar() {
 
     const user = session?.user
     const role = getRole(user?.role)
-    const items = MENU_BY_ROLE[role] ?? MENU_BY_ROLE.students
+    const items = role ? MENU_BY_ROLE[role] : []
+    const dashboardRoot = role ? `/dashboard/${role}` : "/dashboard"
 
     const name = user?.name?.trim() || "User"
 
@@ -108,7 +127,7 @@ export function DashboardSidebar() {
 
         const isActive =
             pathname === item.href ||
-            (item.href !== `/dashboard/${role}` &&
+            (item.href !== dashboardRoot &&
                 pathname.startsWith(`${item.href}/`))
 
         return (
@@ -229,7 +248,7 @@ export function DashboardSidebar() {
                             <span className="mt-1 flex items-center gap-1.5">
                                 <span className="size-1.5 rounded-full bg-emerald-500" />
                                 <span className="truncate text-[11px] text-neutral-500 dark:text-neutral-400">
-                                    {ROLE_LABEL[role]}
+                                    {role ? ROLE_LABEL[role] : "Member"}
                                 </span>
                             </span>
                         </span>

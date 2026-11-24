@@ -10,7 +10,7 @@ import {
   Shield,
   Trash2,
 } from "lucide-react";
-import { toast } from "react-toastify";
+import { showToast } from "@/lib/utils/toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,8 @@ export interface AdminUserRecord {
   _id: string;
   name?: string;
   email: string;
-  role?: UserRole;
+  // Backend e legacy "student"/"teacher" o thakte pare, tai string rakha hoy.
+  role?: string;
   status?: "active" | "blocked";
   payment?: boolean;
 }
@@ -31,8 +32,7 @@ const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 function notifyOnce(type: "success" | "error", id: string, message: string) {
-  toast.dismiss(id);
-  toast[type](message, { toastId: id });
+  showToast[type](message, { id });
 }
 
 export default function AdminUsersView() {
@@ -217,7 +217,12 @@ export default function AdminUsersView() {
       <div className="space-y-2.5">
         {users.map((user) => {
           const displayName = user.name || "Unnamed User";
-          const currentRole: UserRole = user.role || "student";
+          const currentRole: UserRole =
+            user.role === "teacher" || user.role === "teachers"
+              ? "teachers"
+              : user.role === "admin"
+                ? "admin"
+                : "students";
           const isBlocked = user.status === "blocked";
           const isPaid = Boolean(user.payment);
           const isPaymentBusy = paymentUpdatingId === user._id;
@@ -325,7 +330,13 @@ export default function AdminUsersView() {
 
       <RoleDialog
         userName={roleTarget?.name || roleTarget?.email || ""}
-        currentRole={roleTarget?.role || "student"}
+        currentRole={
+          roleTarget?.role === "teacher" || roleTarget?.role === "teachers"
+            ? "teachers"
+            : roleTarget?.role === "admin"
+              ? "admin"
+              : "students"
+        }
         open={Boolean(roleTarget)}
         loading={actionLoading}
         onOpenChange={(open) => !open && setRoleTarget(null)}

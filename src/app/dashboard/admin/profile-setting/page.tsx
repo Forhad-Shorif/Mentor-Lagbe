@@ -28,7 +28,7 @@ export default async function AdminDashboardProfilePage() {
     ServerUser(),
     getData(`${API_BASE}/GetUsers`),
     getData(`${API_BASE}/TuitionsSearch?limit=200`),
-    getData(`${API_BASE}/GetPayments`),
+    getData(`${API_BASE}/AdminViewPayments`),
   ]);
 
   const adminInfo = {
@@ -41,10 +41,14 @@ export default async function AdminDashboardProfilePage() {
   const status = user?.status === "blocked" ? "blocked" : "active";
 
   const paidRevenue = payments.reduce(
-    (sum: number, p: { amount?: number | string; status?: string }) => {
+    (
+      sum: number,
+      p: { amount?: number | string; amountTotal?: number | string; status?: string }
+    ) => {
       const s = String(p?.status || "").toLowerCase();
       const paid = s === "paid" || s === "completed" || s === "success";
-      return paid ? sum + (Number(p?.amount) || 0) : sum;
+      if (!paid) return sum;
+      return sum + (Number(p?.amountTotal ?? p?.amount) || 0);
     },
     0
   );

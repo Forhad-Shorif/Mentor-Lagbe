@@ -4,7 +4,6 @@ import ProfileMediaSection from "@/components/SheareForm/ProfileForm/ImageFeild"
 import UserProfileCard from "@/components/SheareForm/ProfileForm/UserProfile";
 import TeacherProfileCard from "@/components/SheareForm/ProfileForm/TeacherProfile";
 import {getTeacherProfile,getUserProfile,} from "@/components/SheareForm/ProfileForm/ActionProfile";
-import { getRole } from "@/lib/roles";
 import EditTeacherProfileDialog from "@/components/SheareForm/ProfileForm/EditTeacherProfileDialog";
 import AddTeacherProfileDialog from "@/components/SheareForm/ProfileForm/Teacher-Form";
 import EditLeftProfileDialog from "@/components/SheareForm/ProfileForm/EditLeftProfileDialog";
@@ -14,6 +13,17 @@ import AdminAccountMetaCard from "@/components/SheareDashboard/SheareAdmin/NavPr
 import AdminQuickActionsCard from "@/components/SheareDashboard/SheareAdmin/NavProfile/AdminQuickActionsCard";
 import NavProfileEdit from "@/components/SheareForm/ProfileForm/EditNavProfile";
 import { ServerUser } from "@/lib/ServerUser";
+
+// Role na porichito hole null — kono "students" fallback nei.
+const getRole = (role?: string): "students" | "teachers" | "admin" | null => {
+  const value = String(role || "").toLowerCase();
+
+  if (value === "students" || value === "student") return "students";
+  if (value === "teachers" || value === "teacher") return "teachers";
+  if (value === "admin") return "admin";
+
+  return null;
+};
 
 const ProfilePage = async () => {
   const user = await ServerUser();
@@ -31,10 +41,11 @@ const ProfilePage = async () => {
 
   const role = getRole(user.role);
   const email = user.email || "";
+  const isStudentOrTeacher = role === "students" || role === "teachers";
 
   // Backend theke login kora user er profile data ana hoy.
   // Admin er jonno ei profile info section cholbe na (shudhu student + teacher).
-  const userProfile = role !== "admin" ? await getUserProfile(email) : null;
+  const userProfile = isStudentOrTeacher ? await getUserProfile(email) : null;
   const teacherProfile =
     role === "teachers" ? await getTeacherProfile(email) : null;
 
@@ -62,7 +73,7 @@ const ProfilePage = async () => {
               ))}
 
             {/* User profile data thakle Update, na thakle Post Data */}
-            {role !== "admin" &&
+            {isStudentOrTeacher &&
               (userProfile ? (
                 <EditLeftProfileDialog initialData={userProfile} />
               ) : (
@@ -77,7 +88,7 @@ const ProfilePage = async () => {
         <ProfileMediaSection />
 
         {/* Student: shudhu User card. Teacher: Column-wise User card + Teacher card. */}
-        {role !== "admin" &&
+        {isStudentOrTeacher &&
           (role === "teachers" ? (
             <div className="flex flex-col gap-4 md:gap-5">
               {userProfile ? (
@@ -115,7 +126,7 @@ const ProfilePage = async () => {
             </EmptyCard>
           ))}
 
-        {user?.role === "admin" ? (
+        {role === "admin" ? (
           <div className="space-y-6">
             <AdminProfileBioCard />
 

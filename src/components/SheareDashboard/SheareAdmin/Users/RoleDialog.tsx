@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export type UserRole = "student" | "teacher" | "admin";
+export type UserRole = "students" | "teachers" | "admin";
 
 interface RoleDialogProps {
   userName: string;
@@ -82,8 +82,8 @@ export default function RoleDialog({
                 <SelectValue placeholder="Select a role" />
               </SelectTrigger>
               <SelectContent className="border-amber-400/30 bg-white text-slate-900 dark:bg-slate-900 dark:text-white">
-                <SelectItem value="student">student</SelectItem>
-                <SelectItem value="teacher">teacher</SelectItem>
+                <SelectItem value="students">student</SelectItem>
+                <SelectItem value="teachers">teacher</SelectItem>
                 <SelectItem value="admin">admin</SelectItem>
               </SelectContent>
             </Select>

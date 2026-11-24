@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowRight,
   BookmarkCheck,
@@ -15,56 +16,136 @@ import { showToast } from "@/lib/utils/toast";
 interface StudentPlanSectionProps {
   studentEmail?: string;
   studentId?: string;
+  studentName?: string;
+  studentImage?: string;
   currentPlan?: "free" | "pro";
+  returnTo?: string;
 }
 
 export default function StudentPlanSection({
   studentEmail,
   studentId,
+  studentName = "",
+  studentImage = "",
   currentPlan = "free",
+  returnTo,
 }: StudentPlanSectionProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+
   const [loadingPlan, setLoadingPlan] = useState<"free" | "pro" | null>(null);
   const [billingCycle, setBillingCycle] = useState<"monthly" | "quarterly">(
     "monthly"
   );
+  const [isActiveFromBackend, setIsActiveFromBackend] = useState(
+    currentPlan === "pro"
+  );
 
+  // হিন্ট (কী): ব্যাকএন্ড URL এবং পেমেন্ট শেষে ফেরার ঠিকানা (returnTo) ঠিক করা হচ্ছে।
+  // হিন্ট (কেন): পেমেন্ট বা রশিদ ফ্লোতে ইউজার যেন সঠিক পেজে ফিরতে পারে এবং ব্যাকএন্ড ঠিকমতো কল হয়।
+  // হিন্ট (কীভাবে): props-এ returnTo না থাকলে বর্তমান pathname নেওয়া হচ্ছে।
   const backendUrl =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    process.env.NEXT_PUBLIC_BACKEND_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    "http://localhost:8000";
+  const targetReturnTo = returnTo || pathname || "/dashboard";
 
   const proPrice = billingCycle === "monthly" ? 10 : 27;
+  const durationDays = billingCycle === "monthly" ? 30 : 90;
+  const planKey = billingCycle === "monthly" ? "student_1m" : "student_3m";
   const amountInCents = proPrice * 100;
+
+  // হিন্ট (কী): স্টুডেন্টের ইমেইল থাকলে ব্যাকএন্ড থেকে প্ল্যানের মেয়াদ ও active অবস্থা যাচাই করা হচ্ছে।
+  // হিন্ট (কেন): মেয়াদ শেষ হলে যেন আবার আপগ্রেড করতে পারে এবং active থাকলে ডুপ্লিকেট পেমেন্ট না হয়।
+  // হিন্ট (কীভাবে): /GetPlanStatus/:email কল করে isActivePlan state আপডেট করা হচ্ছে।
+  useEffect(() => {
+    if (!studentEmail) return;
+
+    fetch(`${backendUrl}/GetPlanStatus/${encodeURIComponent(studentEmail)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (typeof data?.isActivePlan === "boolean") {
+          setIsActiveFromBackend(data.isActivePlan);
+        }
+      })
+      .catch(() => {
+        // ব্যাকএন্ড স্ট্যাটাস না এলে currentPlan prop-এর ওপর নির্ভর করবে
+      });
+  }, [backendUrl, studentEmail]);
 
   const handleStudentStripeUpgrade = async (plan: "free" | "pro") => {
     if (plan === "free") {
       showToast.error(
-        "You are already on the Free Student plan (up to 5 bookmarks)."
+        "You are already on the Free Student plan (up to 2 bookmarks)."
       );
+      return;
+    }
+
+    // হিন্ট (কী): লগইন না থাকলে returnTo সহ login পেজে পাঠানোর guard।
+    // হিন্ট (কেন): ইমেইল ছাড়া পেমেন্ট বা রশিদ ইউজারের সাথে যুক্ত করা যাবে না।
+    // হিন্ট (কীভাবে): studentEmail না থাকলে /login-এ redirect করা হচ্ছে।
+    if (!studentEmail) {
+      showToast.error("Please log in as a student first.");
+      const nextUrl = `${pathname}?returnTo=${encodeURIComponent(targetReturnTo)}`;
+      router.push(`/login?callbackUrl=${encodeURIComponent(nextUrl)}`);
+      return;
+    }
+
+    // হিন্ট (কী): আগে থেকেই active plan থাকলে ডুপ্লিকেট চেকআউট আটকে দেওয়া হচ্ছে।
+    // হিন্ট (কেন): মেয়াদ থাকা অবস্থায় ভুল করে দুবার পেমেন্ট হওয়া ঠেকাতে।
+    // হিন্ট (কীভাবে): isActiveFromBackend সত্য হলে এখানেই থামিয়ে toast দেখানো হচ্ছে।
+    if (isActiveFromBackend) {
+      showToast.error("Your Student Pro Pass is already active.");
       return;
     }
 
     try {
       setLoadingPlan(plan);
 
-      const res = await fetch(
-        `${backendUrl}/api/stripe/create-checkout-session`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            plan: "student_pro",
-            billingCycle,
-            amount: amountInCents,
-            email: studentEmail || "",
-            userId: studentId || "",
-          }),
-        }
-      );
+      const payload = {
+        email: studentEmail,
+        name: studentName,
+        image: studentImage,
+        role: "student",
+        planKey,
+        billingCycle,
+        durationDays,
+        amount: amountInCents,
+        userId: studentId || "",
+        returnTo: targetReturnTo,
+      };
 
-      const data = await res.json();
+      // হিন্ট (কী): Stripe-এ যাওয়ার আগে payment: false দিয়ে pending রেকর্ড সেভ করা হচ্ছে।
+      // হিন্ট (কেন): ইউজার পেমেন্ট না করে ব্যাক করলে রেকর্ডটি payment: false হিসেবে থেকে যাবে।
+      // হিন্ট (কীভাবে): /PaymentPending এ POST রিকোয়েস্ট পাঠানো হচ্ছে।
+      const pendingRes = await fetch(`${backendUrl}/PaymentPending`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!pendingRes.ok) {
+        showToast.error("Could not initialize pending payment record");
+        return;
+      }
+
+      // হিন্ট (কী): Stripe Checkout Session তৈরি করে ইউজারকে Stripe পেজে পাঠানো হচ্ছে।
+      // হিন্ট (কেন): নিরাপদ কার্ড পেমেন্ট নেওয়ার জন্য Stripe Checkout Session URL দরকার।
+      // হিন্ট (কীভাবে): checkout route কল করে data.url পেলে window.location.href দিয়ে পাঠানো হচ্ছে।
+      const res = await fetch(`/api/checkout_sessions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json().catch(() => null);
 
       if (data?.url) {
+        sessionStorage.setItem("stripe_checkout_started", "true");
         window.location.href = data.url;
         return;
       }
@@ -100,22 +181,20 @@ export default function StudentPlanSection({
           <button
             type="button"
             onClick={() => setBillingCycle("monthly")}
-            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-              billingCycle === "monthly"
+            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${billingCycle === "monthly"
                 ? "bg-teal-700 text-white dark:bg-cyan-400 dark:text-slate-950"
                 : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-            }`}
+              }`}
           >
             Monthly
           </button>
           <button
             type="button"
             onClick={() => setBillingCycle("quarterly")}
-            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-              billingCycle === "quarterly"
+            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${billingCycle === "quarterly"
                 ? "bg-teal-700 text-white dark:bg-cyan-400 dark:text-slate-950"
                 : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-            }`}
+              }`}
           >
             3 Months (Save $3)
           </button>
@@ -170,7 +249,7 @@ export default function StudentPlanSection({
             onClick={() => handleStudentStripeUpgrade("free")}
             className="mt-6 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-900 sm:text-sm"
           >
-            {currentPlan === "free" ? "Active: Student Free" : "Student Free"}
+            {!isActiveFromBackend ? "Active: Student Free" : "Student Free"}
           </button>
         </div>
 
@@ -249,9 +328,9 @@ export default function StudentPlanSection({
 
           <button
             type="button"
-            disabled={loadingPlan === "pro"}
+            disabled={loadingPlan === "pro" || isActiveFromBackend}
             onClick={() => handleStudentStripeUpgrade("pro")}
-            className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:brightness-105 active:scale-[0.99] disabled:opacity-60 dark:from-cyan-400 dark:to-teal-400 dark:text-slate-950 dark:shadow-[0_0_24px_rgba(34,211,238,0.25)]"
+            className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:brightness-105 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 dark:from-cyan-400 dark:to-teal-400 dark:text-slate-950 dark:shadow-[0_0_24px_rgba(34,211,238,0.25)]"
           >
             {loadingPlan === "pro" ? (
               <>
@@ -261,7 +340,7 @@ export default function StudentPlanSection({
             ) : (
               <>
                 <span>
-                  {currentPlan === "pro" ? "Pro Pass Active" : "Update Plan"}
+                  {isActiveFromBackend ? "Pro Pass Active" : "Update Plan"}
                 </span>
                 <ArrowRight className="h-4 w-4" />
               </>

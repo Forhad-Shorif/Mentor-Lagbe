@@ -12,7 +12,6 @@ import {
 
 import { authClient } from "@/lib/auth-client";
 import { showToast } from "@/lib/utils/toast";
-import { getDashboardHref, getRole, ROLE_LABEL } from "@/lib/roles";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,14 +23,37 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 // "Nusrat Jahan" -> "NJ" (avatar er vitore dekhai)
-const getInitials = (name: string) => {
-  const parts = name.trim().split(" ").filter(Boolean);
+const getInitials = (name: string) => {  const parts = name.trim().split(" ").filter(Boolean);
   const initials = parts
     .slice(0, 2)
     .map((part) => part[0].toUpperCase())
     .join("");
 
   return initials || "U";
+};
+
+type UserRole = "students" | "teachers" | "admin";
+
+// Role na porichito hole null return kori — kono "students" fallback nei.
+const getRole = (role?: string): UserRole | null => {
+  const value = String(role || "").toLowerCase();
+
+  if (value === "students" || value === "student") return "students";
+  if (value === "teachers" || value === "teacher") return "teachers";
+  if (value === "admin") return "admin";
+
+  return null;
+};
+
+const ROLE_LABEL: Record<UserRole, string> = {
+  students: "Student",
+  teachers: "Teacher",
+  admin: "Admin",
+};
+
+const getDashboardHref = (role?: string) => {
+  const normalized = getRole(role);
+  return normalized ? `/dashboard/${normalized}` : "/";
 };
 
 const ProfileNav = () => {
@@ -72,7 +94,8 @@ const ProfileNav = () => {
   }
 
   const name = user.name || "User";
-  const roleLabel = ROLE_LABEL[getRole(user.role)];
+  const normalizedRole = getRole(user.role);
+  const roleLabel = normalizedRole ? ROLE_LABEL[normalizedRole] : "Member";
   const dashboardHref = getDashboardHref(user.role);
 
   const handleSignOut = async () => {
