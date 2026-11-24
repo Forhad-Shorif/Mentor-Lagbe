@@ -5,69 +5,59 @@ import { authClient } from '@/lib/auth-client'
 import { showToast } from '@/lib/utils/toast'
 import { FaGoogle, FaGithub } from 'react-icons/fa6'
 
+// হিন্ট (কী): Google ও GitHub সোশ্যাল সাইন-ইন বাটন—Light ও Dark থিমের সাথে মিলিয়ে স্টাইল করা হয়েছে।
+// হিন্ট (কেন): SignUp ও SignIn ফর্মের সায়ান/ডার্ক-ব্লু গ্লাস লুকের সাথে বাটনগুলো যেন সামঞ্জস্যপূর্ণ থাকে।
+// হিন্ট (কীভাবে): contents wrapper এবং light/dark adaptive Tailwind ক্লাস ব্যবহার করা হয়েছে।
 const SocialSign = () => {
-    // 🔄 কোন provider e click kora hoyeche seta rakhi, jate oi button ta disable/spinner dekhay
+    // কোন provider-এ ক্লিক করা হয়েছে তা ধরে রাখা হচ্ছে, যাতে ওই বাটনে spinner ও disable কাজ করে
     const [loadingProvider, setLoadingProvider] = useState<"google" | "github" | null>(null)
 
-    // 🌐 সোশ্যাল অথেন্টিকেশন (গুগল ও গিটহাব)
-    const handleGoogleSignIn = async () => {
-        setLoadingProvider("google")
+    const handleSocialSignIn = async (provider: "google" | "github") => {
+        setLoadingProvider(provider)
 
-        const { error } = await authClient.signIn.social({
-            provider: "google",
-            callbackURL: "/profile",
-        })
+        try {
+            const { error } = await authClient.signIn.social({
+                provider,
+                callbackURL: "/profile",
+            })
 
-        if (error) {
-            showToast.error(error.message || "Google sign-in failed. Please try again.")
+            if (error) {
+                const label = provider === "google" ? "Google" : "GitHub"
+                showToast.error(error.message || `${label} sign-in failed. Please try again.`)
+            }
+        } finally {
+            setLoadingProvider(null)
         }
-
-        setLoadingProvider(null)
-    }
-
-    const handleGithubSignIn = async () => {
-        setLoadingProvider("github")
-
-        const { error } = await authClient.signIn.social({
-            provider: "github",
-            callbackURL: "/profile",
-        })
-
-        if (error) {
-            showToast.error(error.message || "GitHub sign-in failed. Please try again.")
-        }
-
-        setLoadingProvider(null)
     }
 
     return (
-        // "contents" mane ei div ta layout e na dekhiye, vitore button gulo parent grid er direct child hisebe boshe
         <div className="contents">
             <button
                 type="button"
-                onClick={handleGoogleSignIn}
+                onClick={() => handleSocialSignIn("google")}
                 disabled={loadingProvider !== null}
-                className="group flex items-center justify-center gap-2.5 rounded-2xl border border-slate-700/60 bg-slate-800/40 px-4 py-3 text-xs sm:text-sm font-medium text-slate-200 transition-all duration-300 hover:bg-slate-800 hover:border-violet-500/50 hover:text-white cursor-pointer active:scale-95 disabled:opacity-50 shadow-sm"
+                className="group flex cursor-pointer items-center justify-center gap-2.5 rounded-2xl border border-slate-200 bg-slate-50/90 px-4 py-3 text-xs font-bold text-slate-800 shadow-2xs transition-all duration-200 hover:border-cyan-500/50 hover:bg-cyan-500/10 hover:text-slate-950 active:scale-[0.98] disabled:opacity-50 dark:border-slate-700/80 dark:bg-slate-950/65 dark:text-slate-200 dark:hover:border-cyan-400/50 dark:hover:bg-cyan-400/10 dark:hover:text-white sm:text-sm"
             >
                 {loadingProvider === "google" ? (
-                    <span className="size-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    <span className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                 ) : (
-                    <FaGoogle className="size-4 text-rose-500 transition-transform group-hover:scale-110 duration-300" />
+                    <FaGoogle className="size-4 text-rose-500 transition-transform duration-200 group-hover:scale-110" />
                 )}
-                Google
+                <span>Google</span>
             </button>
+
             <button
                 type="button"
-                onClick={handleGithubSignIn}
+                onClick={() => handleSocialSignIn("github")}
                 disabled={loadingProvider !== null}
-                className="group flex items-center justify-center gap-2.5 rounded-2xl border border-slate-700/60 bg-slate-800/40 px-4 py-3 text-xs sm:text-sm font-medium text-slate-200 transition-all duration-300 hover:bg-slate-800 hover:border-violet-500/50 hover:text-white cursor-pointer active:scale-95 disabled:opacity-50 shadow-sm"
+                className="group flex cursor-pointer items-center justify-center gap-2.5 rounded-2xl border border-slate-200 bg-slate-50/90 px-4 py-3 text-xs font-bold text-slate-800 shadow-2xs transition-all duration-200 hover:border-cyan-500/50 hover:bg-cyan-500/10 hover:text-slate-950 active:scale-[0.98] disabled:opacity-50 dark:border-slate-700/80 dark:bg-slate-950/65 dark:text-slate-200 dark:hover:border-cyan-400/50 dark:hover:bg-cyan-400/10 dark:hover:text-white sm:text-sm"
             >
                 {loadingProvider === "github" ? (
-                    <span className="size-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    <span className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                 ) : (
-                    <FaGithub className="size-4 text-white transition-transform group-hover:scale-110 duration-300" />
+                    <FaGithub className="size-4 text-slate-900 transition-transform duration-200 group-hover:scale-110 dark:text-white" />
                 )}
-                GitHub
+                <span>GitHub</span>
             </button>
         </div>
     )

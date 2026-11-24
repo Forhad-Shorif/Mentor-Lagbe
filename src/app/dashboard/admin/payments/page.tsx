@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { ArrowLeft, CreditCard } from "lucide-react";
-import AdminPaymentsView, { AdminPaymentItem } from "@/components/SheareDashboard/SheareAdmin/AdminPaymentsView";
+import AdminPaymentsView, { AdminPaymentItem } from "@/components/SheareDashboard/SheareAdmin/Payments/AdminPaymentsView";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";

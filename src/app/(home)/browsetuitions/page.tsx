@@ -2,7 +2,7 @@ import React from "react";
 import { Sparkles } from "lucide-react";
 import BrowseTuitionsClient, {
   TuitionItem,
-} from "@/components/SheareHome/BrowseTuitionsClient";
+} from "@/components/SheareHome/BrowseTutions/BrowseTuitionsClient";
 
 interface BrowseTuitionsPageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;

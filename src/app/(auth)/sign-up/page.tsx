@@ -1,26 +1,11 @@
-import { SignUpForm } from '@/components/AuthSheare/Sign-Up';
-import React from 'react';
+import { SignUpForm } from "@/components/AuthSheare/Sign-Up";
+import React from "react";
 
+// হিন্ট (কী): SignUpForm-কে পরিষ্কার থিম-সমন্বিত পেজ র‍্যাপারে রেন্ডার করা হচ্ছে।
+// হিন্ট (কেন): ভেতরের SignUpForm-এর নিজস্ব light/dark থিম ও split লেআউট যেন ঠিকভাবে কাজ করে।
+// হিন্ট (কীভাবে): বাড়তি dark wrapper বাদ দিয়ে সরাসরি <SignUpForm /> রেন্ডার করা হয়েছে।
 const SignUpPage = () => {
-    return (
-        <main className="min-h-screen w-full relative overflow-hidden bg-[#030712] selection:bg-violet-500 selection:text-white flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-            
-            {/* Ambient Background Glowing Orbs for Modern Vibe */}
-            <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-violet-600/15 rounded-full blur-[140px] pointer-events-none animate-pulse"></div>
-            <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-indigo-600/15 rounded-full blur-[140px] pointer-events-none"></div>
-            
-            {/* Subtle Grid Texture for Depth */}
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:3rem_3rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none"></div>
-
-            {/* Page Wrapper Container */}
-            <div className="relative z-10 w-full max-w-7xl mx-auto flex items-center justify-center">
-                <div className="w-full transition-all duration-500 transform hover:scale-[1.005]">
-                    <SignUpForm />
-                </div>
-            </div>
-            
-        </main>
-    );
+  return <SignUpForm />;
 };
 
 export default SignUpPage;

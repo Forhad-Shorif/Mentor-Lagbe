@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, BookOpen } from "lucide-react";
 import TutionsDetails, {
   TuitionDetailData,
-} from "@/components/SheareDashboard/SheareTeacher/TutionsDetails";
+} from "@/components/SheareDashboard/DetailsTutions/TutionsDetails";
 
 interface PageProps {
   params: Promise<{ id: string }>;

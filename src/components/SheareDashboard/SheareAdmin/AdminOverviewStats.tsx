@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import AdminPaymentRowCard, {
   AdminPaymentItem,
   isPaymentPaid,
-} from "./AdminPaymentRowCard";
+} from "./Payments/AdminPaymentRowCard";
 
 export type { AdminPaymentItem };
 

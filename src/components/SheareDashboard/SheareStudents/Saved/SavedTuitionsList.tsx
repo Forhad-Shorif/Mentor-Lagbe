@@ -5,7 +5,7 @@ import { Sparkles } from "lucide-react";
 import { showToast } from "@/lib/utils/toast";
 import SavedTuitionsFilterBar from "./SavedTuitionsFilterBar";
 import SavedTuitionCard from "./SavedTuitionCard";
-import TuitionApplyModal from "../../SheareTeacher/TuitionApplyModal";
+import TuitionApplyModal from "../../DetailsTutions/TuitionApplyModal";
 
 export interface SavedTuitionItem {
   id: string;
