@@ -139,7 +139,7 @@ export default function TuitionDetailsView({
               {saving ? "Saving..." : saved ? "Saved" : "Save"}
             </button>
           </div> : <div>
-            <button onClick={() => { showToast.error("You are not Students") }} type="button" className="inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
+            <button onClick={() => { showToast.error("Only Student accounts can save this tuitions!") }} type="button" className="inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
               Save  <Bookmark />
             </button></div>}
         </div>
@@ -401,7 +401,7 @@ export default function TuitionDetailsView({
                   </button>
                 </div> : <div>
                   <button
-                    onClick={() => { showToast.error("You are not Students") }}
+                    onClick={() => { showToast.error("Only Student accounts can apply for tuitions!") }}
                     type="button"
                     className="rounded-xl bg-gradient-to-r from-cyan-600 to-teal-600 px-3 py-2.5 text-xs font-bold text-white shadow-sm transition hover:brightness-105 active:scale-[0.98] dark:from-cyan-500 dark:to-teal-500"
                   >
@@ -423,7 +423,7 @@ export default function TuitionDetailsView({
                     {saving ? "Saving..." : saved ? "Saved" : "Save"}
                   </button>
                 </div> : <div>
-                  <button onClick={() => { showToast.error("You are not Students") }} type="button" className="inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
+                  <button onClick={() => { showToast.error("Only Student accounts can this for tuitions!") }} type="button" className="inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
                     Save  <Bookmark />
                   </button>
                   </div>}
