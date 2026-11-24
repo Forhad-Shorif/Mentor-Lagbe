@@ -1,15 +1,15 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 import { ServerUser } from './lib/ServerUser'
 
- const user = await ServerUser()
+
 // This function can be marked `async` if using `await` inside
 export async function proxy(request: NextRequest) {
-
-   
-   
+    const user = await ServerUser()
     if (user) {
         return NextResponse.redirect(new URL('/', request.url))
+    }
+    if (!user) {
+
     }
 
 }
@@ -18,5 +18,5 @@ export async function proxy(request: NextRequest) {
 // export default function proxy(request: NextRequest) { ... }
 
 export const config = {
-    matcher: ['/sign-in','/sign-up']
+    matcher: ['/sign-in', '/sign-up']
 }

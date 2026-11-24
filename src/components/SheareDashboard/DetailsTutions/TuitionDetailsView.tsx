@@ -18,6 +18,8 @@ import {
   UserCheck,
 } from "lucide-react";
 import type { TuitionDetailData } from "./TutionsDetails";
+import ClientUser from "@/lib/ClientUser";
+import showToast from "@/lib/utils/toast";
 
 interface TuitionDetailsViewProps {
   tuition: TuitionDetailData;
@@ -45,7 +47,8 @@ export default function TuitionDetailsView({
   const subject = tuition.subject || "General";
   const mentorName = tuition.mentor?.name || "Mentor";
   const mentorEmail = tuition.mentor?.email || "";
-  const currency = tuition.currency || "৳";
+  const currency = tuition.currency || "$";
+  const user = ClientUser()
 
   const rating = Number(tuition.rating);
   const validRating = Number.isFinite(rating)
@@ -58,9 +61,9 @@ export default function TuitionDetailsView({
 
   const highlights = Array.isArray(tuition.highlights)
     ? tuition.highlights.filter(
-        (item): item is string =>
-          typeof item === "string" && item.trim().length > 0
-      )
+      (item): item is string =>
+        typeof item === "string" && item.trim().length > 0
+    )
     : [];
 
   const details = [
@@ -122,19 +125,23 @@ export default function TuitionDetailsView({
             Share
           </button>
 
-          <button
-            type="button"
-            disabled={saving}
-            onClick={onBookmark}
-            className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
-              saved
+          {user?.role === 'students' ? <div>
+            <button
+              type="button"
+              disabled={saving}
+              onClick={onBookmark}
+              className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${saved
                 ? "border-cyan-300 bg-cyan-50 text-cyan-700 dark:border-cyan-500/30 dark:bg-cyan-500/10 dark:text-cyan-300"
                 : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
-            }`}
-          >
-            <Bookmark className={`h-3.5 w-3.5 ${saved ? "fill-current" : ""}`} />
-            {saving ? "Saving..." : saved ? "Saved" : "Save"}
-          </button>
+                }`}
+            >
+              <Bookmark className={`h-3.5 w-3.5 ${saved ? "fill-current" : ""}`} />
+              {saving ? "Saving..." : saved ? "Saved" : "Save"}
+            </button>
+          </div> : <div>
+            <button onClick={() => { showToast.error("You are not Students") }} type="button" className="inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
+              Save  <Bookmark />
+            </button></div>}
         </div>
       </div>
 
@@ -271,11 +278,10 @@ export default function TuitionDetailsView({
                     {[1, 2, 3, 4, 5].map((star) => (
                       <Star
                         key={star}
-                        className={`h-3 w-3 ${
-                          star <= Math.round(validRating)
-                            ? "fill-amber-400 text-amber-400"
-                            : "text-slate-300 dark:text-slate-700"
-                        }`}
+                        className={`h-3 w-3 ${star <= Math.round(validRating)
+                          ? "fill-amber-400 text-amber-400"
+                          : "text-slate-300 dark:text-slate-700"
+                          }`}
                       />
                     ))}
                   </div>
@@ -385,27 +391,43 @@ export default function TuitionDetailsView({
               )}
 
               <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={onBookmark}
-                  disabled={saving}
-                  className={`inline-flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-xs font-bold transition disabled:opacity-60 ${
-                    saved
-                      ? "border-cyan-300 bg-cyan-50 text-cyan-700 dark:border-cyan-500/20 dark:bg-cyan-500/10 dark:text-cyan-300"
-                      : "border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300"
-                  }`}
-                >
-                  <Bookmark className={`h-3.5 w-3.5 ${saved ? "fill-current" : ""}`} />
-                  {saved ? "Saved" : "Save"}
-                </button>
+                {user?.role === 'students' ? <div>
+                  <button
+                    type="button"
+                    onClick={onApply}
+                    className="rounded-xl bg-gradient-to-r from-cyan-600 to-teal-600 px-3 py-2.5 text-xs font-bold text-white shadow-sm transition hover:brightness-105 active:scale-[0.98] dark:from-cyan-500 dark:to-teal-500"
+                  >
+                    Apply Now
+                  </button>
+                </div> : <div>
+                  <button
+                    onClick={() => { showToast.error("You are not Students") }}
+                    type="button"
+                    className="rounded-xl bg-gradient-to-r from-cyan-600 to-teal-600 px-3 py-2.5 text-xs font-bold text-white shadow-sm transition hover:brightness-105 active:scale-[0.98] dark:from-cyan-500 dark:to-teal-500"
+                  >
+                    Apply Now
+                  </button>
+                </div>}
 
-                <button
-                  type="button"
-                  onClick={onApply}
-                  className="rounded-xl bg-gradient-to-r from-cyan-600 to-teal-600 px-3 py-2.5 text-xs font-bold text-white shadow-sm transition hover:brightness-105 active:scale-[0.98] dark:from-cyan-500 dark:to-teal-500"
-                >
-                  Apply Now
-                </button>
+                {user?.role === 'students' ? <div>
+                  <button
+                    type="button"
+                    disabled={saving}
+                    onClick={onBookmark}
+                    className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${saved
+                      ? "border-cyan-300 bg-cyan-50 text-cyan-700 dark:border-cyan-500/30 dark:bg-cyan-500/10 dark:text-cyan-300"
+                      : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
+                      }`}
+                  >
+                    <Bookmark className={`h-3.5 w-3.5 ${saved ? "fill-current" : ""}`} />
+                    {saving ? "Saving..." : saved ? "Saved" : "Save"}
+                  </button>
+                </div> : <div>
+                  <button onClick={() => { showToast.error("You are not Students") }} type="button" className="inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
+                    Save  <Bookmark />
+                  </button>
+                  </div>}
+
               </div>
             </div>
           </section>

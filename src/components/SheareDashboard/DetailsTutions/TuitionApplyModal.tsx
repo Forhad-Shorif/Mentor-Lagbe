@@ -47,22 +47,22 @@ const SESSION_OPTIONS: {
   hint: string;
   icon: React.ReactNode;
 }[] = [
-  {
-    label: "Morning",
-    hint: "6 AM – 12 PM",
-    icon: <Sun className="h-4 w-4 text-amber-500" />,
-  },
-  {
-    label: "Afternoon",
-    hint: "12 PM – 6 PM",
-    icon: <Sunset className="h-4 w-4 text-orange-500" />,
-  },
-  {
-    label: "Night",
-    hint: "6 PM – 11 PM",
-    icon: <Moon className="h-4 w-4 text-cyan-500" />,
-  },
-];
+    {
+      label: "Morning",
+      hint: "6 AM – 12 PM",
+      icon: <Sun className="h-4 w-4 text-amber-500" />,
+    },
+    {
+      label: "Afternoon",
+      hint: "12 PM – 6 PM",
+      icon: <Sunset className="h-4 w-4 text-orange-500" />,
+    },
+    {
+      label: "Night",
+      hint: "6 PM – 11 PM",
+      icon: <Moon className="h-4 w-4 text-cyan-500" />,
+    },
+  ];
 
 // হিন্ট: open redirect ঠেকাতে শুধু "/" দিয়ে শুরু হওয়া safe path নেওয়া হচ্ছে
 function getSafeReturnPath(pathname: string, search: string): string {
@@ -96,8 +96,7 @@ export default function TuitionApplyModal({
 
   const tuitionId = tuition._id || tuition.id || "";
   const mentorName = tuition.mentor?.name || "Verified Mentor";
-  const backendUrl =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL;
 
   const currentReturnTo = getSafeReturnPath(pathname, searchParams.toString());
   const pricingRedirectUrl = `/pricing?returnTo=${encodeURIComponent(
@@ -144,14 +143,14 @@ export default function TuitionApplyModal({
       return;
     }
 
-    if (
-      user.role &&
-      !["student", "students"].includes(user.role.toLowerCase())
-    ) {
-      showToast.error("Only Student accounts can apply for tuitions!");
-      onOpenChange(false);
-      return;
-    }
+    // if (
+    //   user.role &&
+    //   !["student", "students"].includes(user.role.toLowerCase())
+    // ) {
+    //   showToast.error("Only Student accounts can apply for tuitions!");
+    //   onOpenChange(false);
+    //   return;
+    // }
 
     let cancelled = false;
     (async () => {
@@ -197,14 +196,14 @@ export default function TuitionApplyModal({
     }
 
     // ২. Student ছাড়া অন্য কেউ (যেমন Teacher বা Admin) apply করলে সরাসরি toast
-    if (
-      user.role &&
-      !["student", "students"].includes(user.role.toLowerCase())
-    ) {
-      showToast.error("Only Student accounts can apply for tuitions!");
-      onOpenChange(false);
-      return;
-    }
+    // if (
+    //   user.role &&
+    //   !["student", "students"].includes(user.role.toLowerCase())
+    // ) {
+    //   showToast.error("Only Student accounts can apply for tuitions!");
+    //   onOpenChange(false);
+    //   return;
+    // }
 
     if (submitting || checkingCount) return;
 
@@ -283,7 +282,7 @@ export default function TuitionApplyModal({
       ) {
         redirectToPricingWithReturn(
           data?.message ||
-            "আপনার ফ্রি ২টি Apply সীমা শেষ। প্ল্যান নিতে Pricing পেজে যাওয়া হচ্ছে..."
+          "আপনার ফ্রি ২টি Apply সীমা শেষ। প্ল্যান নিতে Pricing পেজে যাওয়া হচ্ছে..."
         );
         return;
       }
@@ -395,11 +394,10 @@ export default function TuitionApplyModal({
                     key={slot.label}
                     type="button"
                     onClick={() => setSessionTime(slot.label)}
-                    className={`flex flex-col items-center justify-center rounded-2xl border p-3 text-center transition-all ${
-                      active
-                        ? "border-cyan-500 bg-cyan-500/15 text-slate-900 ring-2 ring-cyan-500/30 dark:border-cyan-400 dark:bg-cyan-400/15 dark:text-white dark:ring-cyan-400/30"
-                        : "border-slate-200 bg-slate-50/70 text-slate-600 hover:border-cyan-500/40 dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-300"
-                    }`}
+                    className={`flex flex-col items-center justify-center rounded-2xl border p-3 text-center transition-all ${active
+                      ? "border-cyan-500 bg-cyan-500/15 text-slate-900 ring-2 ring-cyan-500/30 dark:border-cyan-400 dark:bg-cyan-400/15 dark:text-white dark:ring-cyan-400/30"
+                      : "border-slate-200 bg-slate-50/70 text-slate-600 hover:border-cyan-500/40 dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-300"
+                      }`}
                   >
                     <div className="mb-1">{slot.icon}</div>
                     <span className="text-xs font-bold">{slot.label}</span>
@@ -439,8 +437,8 @@ export default function TuitionApplyModal({
                 {checkingCount
                   ? "Checking limit..."
                   : submitting
-                  ? "Sending..."
-                  : "Submit Application"}
+                    ? "Sending..."
+                    : "Submit Application"}
               </span>
             </button>
           </DialogFooter>

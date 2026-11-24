@@ -297,6 +297,7 @@ export default function TutionsDetails({
         onOpenChange={setApplyOpen}
         tuition={safeTuition}
       />
+
     </>
   );
 }
