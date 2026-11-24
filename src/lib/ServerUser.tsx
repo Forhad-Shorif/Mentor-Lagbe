@@ -16,7 +16,7 @@ export const Authoraization = async (role:string) => {
         headers: await headers() // you need to pass the headers object.
     })
     if(!session || session?.user.role !== role){
-        redirect('/')
+        redirect('/Unauthorized')
     }
     return session;
 }
