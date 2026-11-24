@@ -185,6 +185,9 @@ export default function TuitionApplyModal({
   ]);
 
   const handleApplySubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    // await er age form element ta capture korte hobe —
+    // React e async handler er await er por e.currentTarget null hoye jay.
+    const form = e.currentTarget;
     e.preventDefault();
 
     // ১. লগইন না থাকলে সরাসরি toast দিয়ে আটকে দেবে
@@ -226,7 +229,7 @@ export default function TuitionApplyModal({
     setSubmitting(true);
 
     try {
-      const formData = new FormData(e.currentTarget);
+      const formData = new FormData(form);
       const studentName = String(
         formData.get("studentName") || user?.name || ""
       ).trim();

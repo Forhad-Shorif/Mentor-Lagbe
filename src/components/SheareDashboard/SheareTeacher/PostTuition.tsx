@@ -92,6 +92,9 @@ export default function PostTuitionForm() {
   // হিন্ট: বাটন disabled না রেখে লিমিট পার হলে সরাসরি Pricing পেজে পাঠাতে।
   // হিন্ট: checkCanPostTuition() দিয়ে যাচাই করে ঠিক থাকলে /TuitionsPost-এ POST পাঠায়।
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    // await er age form element ta capture korte hobe —
+    // async handler er await er por e.currentTarget null hoye jay.
+    const form = e.currentTarget;
     e.preventDefault();
 
     if (!user?.email) {
@@ -112,7 +115,7 @@ export default function PostTuitionForm() {
     if (!allowedByLimit) return;
 
     setSubmitting(true);
-    const formData = new FormData(e.currentTarget);
+    const formData = new FormData(form);
 
     try {
       let coverImageURL = "";
