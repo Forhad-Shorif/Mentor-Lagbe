@@ -46,11 +46,8 @@ export default function PaymentSuccessPage() {
   const searchParams = useSearchParams();
   const sessionId = (searchParams.get("session_id") || "").trim();
 
-  const backendUrl =
-    process.env.NEXT_PUBLIC_BACKEND_URL ||
-    process.env.NEXT_PUBLIC_API_URL ||
-    "http://localhost:8000";
-
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL 
+   
   const [verifying, setVerifying] = useState(true);
   const [verified, setVerified] = useState(false);
   const [blockedMsg, setBlockedMsg] = useState("");

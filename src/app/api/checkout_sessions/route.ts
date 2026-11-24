@@ -11,7 +11,7 @@ const PRICE_MAP: Record<
 > = {
   student_1m: {
     priceId:
-      process.env.STRIPE_PRICE_STUDENT_1M || "price_1UezcIRpQxlURnHzppulMSWS",
+      process.env.STRIPE_PRICE_STUDENT_1M || "",
     role: "student",
     days: 30,
   },
@@ -48,10 +48,7 @@ export async function POST(req: NextRequest) {
     // হিন্ট (কেন): success_url ও cancel_url বানাতে অ্যাপের base URL দরকার, আর origin null এলে লিংক ভেঙে যেতে পারে।
     // হিন্ট (কীভাবে): origin না পেলে NEXT_PUBLIC_APP_URL বা localhost:3000 fallback হিসেবে ব্যবহার করা হচ্ছে।
     const headersList = await headers();
-    const origin =
-      headersList.get("origin") ||
-      process.env.NEXT_PUBLIC_APP_URL ||
-      "http://localhost:3000";
+    const origin = headersList.get("origin") || process.env.NEXT_PUBLIC_APP_URL 
 
     // হিন্ট (কী): ফ্রন্টএন্ড থেকে পাঠানো JSON body থেকে planKey, returnTo ও ইউজারের তথ্য পড়া হচ্ছে।
     // হিন্ট (কেন): খালি বা ভুল JSON এলে যেন সার্ভার crash না করে, তাই আলাদা try/catch রাখা হয়েছে।
@@ -93,8 +90,7 @@ export async function POST(req: NextRequest) {
     // হিন্ট (কী): Stripe Checkout-এ যাওয়ার আগেই ব্যাকএন্ডে payment: false দিয়ে একটি pending রেকর্ড পাঠানো হচ্ছে।
     // হিন্ট (কেন): ইউজার Stripe পেজে গিয়ে পেমেন্ট না করে ব্যাক করলে যেন রেকর্ডটি payment: false হিসেবে থেকে যায়।
     // হিন্ট (কীভাবে): email থাকলে /PaymentPending endpoint-এ POST করা হচ্ছে; ব্যাকএন্ড ডাউন থাকলেও .catch(() => null) দিয়ে মূল flow আটকানো হচ্ছে না।
-    const backendUrl =
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL
 
     if (body.email) {
       await fetch(`${backendUrl}/PaymentPending`, {
@@ -113,6 +109,21 @@ export async function POST(req: NextRequest) {
           createdAt: new Date().toISOString(),
         }),
       }).catch(() => null);
+    }
+
+    // হিন্ট (কী): Price ID-এর amount যাচাই করা হচ্ছে।
+    // হিন্ট (কেন): amount 0 হলে Stripe কার্ড ফর্ম দেখায় না, ইউজার বিভ্রান্ত হয়।
+    // হিন্ট (কীভাবে): unit_amount না থাকলে বা 0 হলে পরিষ্কার error ফেরত দেওয়া হচ্ছে।
+    const price = await stripe.prices.retrieve(selectedPlan.priceId);
+
+    if (!price.unit_amount || price.unit_amount <= 0) {
+      return NextResponse.json(
+        {
+          error:
+            "This plan is misconfigured (amount is 0). Please contact support.",
+        },
+        { status: 500 }
+      );
     }
 
     // হিন্ট (কী): Stripe-এর hosted Checkout Session তৈরি করা হচ্ছে।

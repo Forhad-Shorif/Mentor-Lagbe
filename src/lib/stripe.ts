@@ -22,8 +22,7 @@ const globalForStripe = globalThis as unknown as { stripeClient?: Stripe };
 // হিন্ট (কী): সার্ভারজুড়ে ব্যবহারের জন্য মূল `stripe` instance export করা হচ্ছে।
 // হিন্ট (কেন): checkout_session বা payment verify রাউটগুলো যেন একইভাবে Stripe API কল করতে পারে।
 // হিন্ট (কীভাবে): new Stripe(stripeSecretKey) দিয়ে instance বানিয়ে export করা হয়েছে।
-export const stripe =
-  globalForStripe.stripeClient ?? new Stripe(stripeSecretKey);
+export const stripe = globalForStripe.stripeClient ?? new Stripe(stripeSecretKey);
 
 if (process.env.NODE_ENV !== "production") {
   globalForStripe.stripeClient = stripe;

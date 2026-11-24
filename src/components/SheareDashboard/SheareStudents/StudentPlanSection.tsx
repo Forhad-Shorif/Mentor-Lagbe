@@ -34,20 +34,14 @@ export default function StudentPlanSection({
   const pathname = usePathname();
 
   const [loadingPlan, setLoadingPlan] = useState<"free" | "pro" | null>(null);
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "quarterly">(
-    "monthly"
-  );
-  const [isActiveFromBackend, setIsActiveFromBackend] = useState(
-    currentPlan === "pro"
-  );
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "quarterly">("monthly");
+  const [isActiveFromBackend, setIsActiveFromBackend] = useState(currentPlan === "pro");
 
   // হিন্ট (কী): ব্যাকএন্ড URL এবং পেমেন্ট শেষে ফেরার ঠিকানা (returnTo) ঠিক করা হচ্ছে।
   // হিন্ট (কেন): পেমেন্ট বা রশিদ ফ্লোতে ইউজার যেন সঠিক পেজে ফিরতে পারে এবং ব্যাকএন্ড ঠিকমতো কল হয়।
   // হিন্ট (কীভাবে): props-এ returnTo না থাকলে বর্তমান pathname নেওয়া হচ্ছে।
-  const backendUrl =
-    process.env.NEXT_PUBLIC_BACKEND_URL ||
-    process.env.NEXT_PUBLIC_API_URL ||
-    "http://localhost:8000";
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL 
+    
   const targetReturnTo = returnTo || pathname || "/dashboard";
 
   const proPrice = billingCycle === "monthly" ? 10 : 27;
