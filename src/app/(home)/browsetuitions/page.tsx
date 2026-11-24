@@ -1,13 +1,58 @@
 import React from "react";
 import { Sparkles } from "lucide-react";
-import BrowseTuitionsClient from "@/components/SheareHome/BrowseTuitionsClient";
+import BrowseTuitionsClient, {
+  TuitionItem,
+} from "@/components/SheareHome/BrowseTuitionsClient";
 
 interface BrowseTuitionsPageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
+const API_BASE = (
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+).replace(/\/+$/, "");
+
 const firstValue = (value: string | string[] | undefined) =>
   Array.isArray(value) ? value[0] : value;
+
+// Server theke tuition list ana hoy — browser backend e direct call kore na,
+// tai deploy kora server e "Failed to fetch" ar ashe na.
+async function loadActiveTuitions(): Promise<{
+  tuitions: TuitionItem[];
+  error: string | null;
+}> {
+  try {
+    const res = await fetch(
+      `${API_BASE}/TuitionsSearch?status=active&limit=200`,
+      { cache: "no-store" }
+    );
+
+    const data = await res.json().catch(() => null);
+
+    if (!res.ok) {
+      return {
+        tuitions: [],
+        error:
+          (data as { message?: string } | null)?.message ||
+          `Server responded with ${res.status}`,
+      };
+    }
+
+    const list = Array.isArray(data)
+      ? data
+      : Array.isArray((data as { tuitions?: unknown })?.tuitions)
+        ? (data as { tuitions: TuitionItem[] }).tuitions
+        : [];
+
+    return { tuitions: list as TuitionItem[], error: null };
+  } catch (err) {
+    console.error("Tuition fetch error:", err);
+    return {
+      tuitions: [],
+      error: "Could not load tuitions. Please try again later.",
+    };
+  }
+}
 
 export default async function BrowseTuitionsPage({
   searchParams,
@@ -16,6 +61,8 @@ export default async function BrowseTuitionsPage({
   const initialSearch =
     firstValue(params.q) || firstValue(params.search) || "";
   const initialMode = firstValue(params.mode) || "";
+
+  const { tuitions, error } = await loadActiveTuitions();
 
   return (
     <div className="relative mx-auto w-full max-w-6xl overflow-hidden rounded-3xl border border-teal-600/20 bg-gradient-to-br from-teal-500/10 via-cyan-500/5 to-emerald-500/10 p-6 text-center dark:border-cyan-400/25 dark:from-cyan-500/15 dark:via-slate-900 dark:to-teal-500/10 sm:p-8">
@@ -39,6 +86,8 @@ export default async function BrowseTuitionsPage({
       <BrowseTuitionsClient
         initialSearch={initialSearch}
         initialMode={initialMode}
+        initialTuitions={tuitions}
+        initialError={error}
       />
     </div>
   );

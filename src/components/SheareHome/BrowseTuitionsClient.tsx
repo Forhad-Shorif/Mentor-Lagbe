@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import BrowseTuitionsView from "./BrowseTuitionsView";
 
@@ -36,15 +36,20 @@ const uniqueSorted = (values: string[]) =>
 interface Props {
     initialSearch?: string;
     initialMode?: string;
+    initialTuitions?: TuitionItem[];
+    initialError?: string | null;
 }
 
 export default function BrowseTuitionsClient({
     initialSearch = "",
     initialMode = "",
+    initialTuitions = [],
+    initialError = null,
 }: Props) {
-    const [tuitions, setTuitions] = useState<TuitionItem[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    // Data server theke ashe — browser backend e direct fetch kore na.
+    const tuitions = initialTuitions;
+    const loading = false;
+    const error = initialError;
 
     const [searchInput, setSearchInput] = useState(initialSearch);
     const [searchQuery, setSearchQuery] = useState(initialSearch);
@@ -53,60 +58,6 @@ export default function BrowseTuitionsClient({
     const [mode, setMode] = useState(
         initialMode ? capitalize(initialMode) : "all"
     );
-
-    const backendUrl =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
-    // Fetch active tuitions
-    useEffect(() => {
-        const controller = new AbortController();
-
-        async function fetchTuitions() {
-            try {
-                setLoading(true);
-                setError(null);
-
-                const response = await fetch(
-                    `${backendUrl}/TuitionsSearch?status=active&limit=200`,
-                    {
-                        cache: "no-store",
-                        signal: controller.signal,
-                    }
-                );
-
-                const data = await response.json().catch(() => null);
-
-                if (!response.ok) {
-                    throw new Error(
-                        data?.message || `Server responded with ${response.status}`
-                    );
-                }
-
-                const list = Array.isArray(data)
-                    ? data
-                    : Array.isArray(data?.tuitions)
-                        ? data.tuitions
-                        : [];
-
-                setTuitions(list);
-            } catch (err) {
-                if ((err as Error).name === "AbortError") return;
-
-                console.error("Tuition fetch error:", err);
-                setError(
-                    err instanceof Error
-                        ? err.message
-                        : "Could not load tuitions."
-                );
-                setTuitions([]);
-            } finally {
-                if (!controller.signal.aborted) setLoading(false);
-            }
-        }
-
-        fetchTuitions();
-        return () => controller.abort();
-    }, [backendUrl]);
 
     // Filter options
     const subjects = useMemo(
