@@ -96,7 +96,8 @@ export default function TuitionApplyModal({
 
   const tuitionId = tuition._id || tuition.id || "";
   const mentorName = tuition.mentor?.name || "Verified Mentor";
-  const backendUrl = process.env.NEXT_PUBLIC_API_URL;
+  const backendUrl =
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
   const currentReturnTo = getSafeReturnPath(pathname, searchParams.toString());
   const pricingRedirectUrl = `/pricing?returnTo=${encodeURIComponent(

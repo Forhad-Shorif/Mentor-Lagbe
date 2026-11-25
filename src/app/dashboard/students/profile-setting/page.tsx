@@ -14,6 +14,7 @@ import { getUserProfile } from "@/components/SheareForm/ProfileForm/ActionProfil
 import EditLeftProfileDialog from "@/components/SheareForm/ProfileForm/EditLeftProfileDialog";
 import AddLeftProfileDialog from "@/components/SheareForm/ProfileForm/Parsonal-Form";
 import { ServerUser } from "@/lib/ServerUser";
+import PaymentReceiptCard from "@/components/Payments/PaymentReceiptCard";
 
 export default async function StudentProfilePage() {
   const user = await ServerUser();
@@ -166,6 +167,7 @@ export default async function StudentProfilePage() {
             <AddLeftProfileDialog />
           </div>
         )}
+        <PaymentReceiptCard />
       </div>
     </main>
   );

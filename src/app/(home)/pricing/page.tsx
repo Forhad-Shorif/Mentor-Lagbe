@@ -6,8 +6,8 @@ import {
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
-import TeacherPlanSection from "@/components/SheareDashboard/SheareTeacher/TeacherPlanSection";
-import StudentPlanSection from "@/components/SheareDashboard/SheareStudents/StudentPlanSection";
+import TeacherPlanSection from "@/components/Payments/TeacherPlanSection";
+import StudentPlanSection from "@/components/Payments/StudentPlanSection";
 import { ServerUser } from "@/lib/ServerUser";
 
 export default async function PricingPage() {

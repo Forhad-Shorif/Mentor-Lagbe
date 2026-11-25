@@ -34,10 +34,26 @@ export interface AdminPaymentItem {
   createdAt?: string;
 }
 
-export function isPaymentPaid(item: Pick<AdminPaymentItem, "status" | "payment">) {
+// হিন্ট (কী): payment === true অথবা status paid/completed/success হলে paid ধরা হচ্ছে।
+// হিন্ট (কেন): ডাটাবেসে শুধু payment: true বা status: "paid" যেকোনো একটা থাকলেও যেন সঠিক স্ট্যাটাস দেখায়।
+// হিন্ট (কীভাবে): Boolean(item.payment) এবং lowercase status চেক করা হয়েছে।
+export function isPaymentPaid(
+  item: Pick<AdminPaymentItem, "status" | "payment">
+) {
   if (item.payment === true) return true;
   const s = String(item.status || "").toLowerCase();
   return s === "paid" || s === "completed" || s === "success";
+}
+
+// হিন্ট (কী): amount বা amountTotal যেটাতে টাকার মান আছে, সেখান থেকে সংখ্যা বের করা হচ্ছে।
+// হিন্ট (কেন): ডাটাবেস ফিল্ড amountTotal হলে যেন ৳ 0 না দেখিয়ে আসল টাকা দেখায়।
+// হিন্ট (কীভাবে): item.amountTotal ?? item.amount নিয়ে Number() করা হয়েছে।
+export function getPaymentAmount(
+  item: Pick<AdminPaymentItem, "amount" | "amountTotal">
+) {
+  const raw = item.amountTotal ?? item.amount;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) ? parsed : 0;
 }
 
 interface AdminPaymentRowCardProps {
@@ -47,9 +63,6 @@ interface AdminPaymentRowCardProps {
   onDelete: (payment: AdminPaymentItem) => void;
 }
 
-// হিন্ট (কী): Admin Payments লিস্টের প্রতিটি পেমেন্ট রো কার্ড—বাম পাশে ইউজারের ছবিসহ।
-// হিন্ট (কেন): মূল AdminPaymentsView ফাইল ছোট রাখতে এবং পেমেন্টের সময় দেওয়া ইউজার ছবি বাম পাশে দেখাতে।
-// হিন্ট (কীভাবে): userImage/image fallback সহ প্রোফাইল ছবি, Paid/Pending ব্যাজ ও action বাটন দেখানো হয়েছে।
 export default function AdminPaymentRowCard({
   payment,
   isBusy,
@@ -58,16 +71,19 @@ export default function AdminPaymentRowCard({
 }: AdminPaymentRowCardProps) {
   const payerName = payment.userName || payment.name || "User Payment";
   const email = payment.email || "No email provided";
-  const amount = Number(payment.amount ?? payment.amountTotal) || 0;
+  const amount = getPaymentAmount(payment);
   const paid = isPaymentPaid(payment);
   const payerImage =
-    payment.userImage || payment.image || payment.photoURL || payment.avatar || "";
+    payment.userImage ||
+    payment.image ||
+    payment.photoURL ||
+    payment.avatar ||
+    "";
   const refId = payment.receiptId || payment.transactionId;
 
   return (
     <Card className="rounded-2xl border border-amber-400/30 bg-white/85 text-slate-900 shadow-2xs backdrop-blur-md transition duration-200 hover:border-amber-500/55 hover:shadow-sm dark:border-amber-400/20 dark:bg-slate-900/75 dark:text-slate-100 dark:hover:border-amber-400/45">
       <CardContent className="flex flex-col justify-between gap-3 px-4 py-2.5 lg:flex-row lg:items-center lg:px-5 lg:py-3">
-        {/* Left: User Image + Name, Status & Email */}
         <div className="flex min-w-0 flex-1 items-center gap-3.5">
           {payerImage ? (
             <img
@@ -121,17 +137,15 @@ export default function AdminPaymentRowCard({
           </div>
         </div>
 
-        {/* Middle: Amount */}
         <div className="flex items-center lg:justify-center">
           <span className="inline-flex h-8 items-center gap-1.5 rounded-xl border border-amber-400/35 bg-amber-400/10 px-3 text-xs font-black text-amber-950 dark:text-amber-200">
             <CreditCard className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
             <span>
-              {payment.currency || "৳"} {amount}
+              {payment.currency || "৳"} {amount.toLocaleString()}
             </span>
           </span>
         </div>
 
-        {/* Right: Actions */}
         <div className="flex shrink-0 items-center justify-end gap-2">
           <Button
             type="button"

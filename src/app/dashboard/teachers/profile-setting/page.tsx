@@ -10,7 +10,7 @@ import AddTeacherProfileDialog from "@/components/SheareForm/ProfileForm/Teacher
 import EditLeftProfileDialog from "@/components/SheareForm/ProfileForm/EditLeftProfileDialog";
 import AddLeftProfileDialog from "@/components/SheareForm/ProfileForm/Parsonal-Form";
 import TutorBioBox from "@/components/SheareDashboard/SheareTeacher/Tutions/TutorBioBox";
-import TeacherPlanSection from "@/components/SheareDashboard/SheareTeacher/TeacherPlanSection";
+import TeacherPlanSection from "@/components/Payments/TeacherPlanSection";
 import { ServerUser } from "@/lib/ServerUser";
 
 const API_BASE =

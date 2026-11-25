@@ -3,6 +3,7 @@ import TutorOverviewHero from "@/components/SheareDashboard/SheareTeacher/Teache
 import TutorOverviewStats from "@/components/SheareDashboard/SheareTeacher/TeacherOverView/TutorOverviewStats";
 import TutorOverviewActivity from "@/components/SheareDashboard/SheareTeacher/TeacherOverView/TutorOverviewActivity";
 import { ServerUser } from "@/lib/ServerUser";
+import PaymentReceiptCard from "@/components/Payments/PaymentReceiptCard";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -108,6 +109,8 @@ export default async function TutorOverviewPage() {
           tuitions={recentTuitions}
           applications={recentApplications}
         />
+
+        <PaymentReceiptCard />
       </div>
     </main>
   );

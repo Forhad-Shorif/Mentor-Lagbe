@@ -21,19 +21,31 @@ async function fetchList(url: string) {
   }
 }
 
+async function fetchPlanStatus(email: string) {
+  try {
+    const res = await fetch(
+      `${API_BASE}/GetPlanStatus/${encodeURIComponent(email)}`,
+      { cache: "no-store" }
+    );
+    if (!res.ok) return null;
+    return (await res.json()) as { isActivePlan?: boolean } | null;
+  } catch {
+    return null;
+  }
+}
+
 export default async function StudentDashboardOverviewPage() {
   const user = await ServerUser();
   const email = String(user?.email || "").trim().toLowerCase();
 
-  const query = email ? `?email=${encodeURIComponent(email)}` : "";
-
-  const [applicationsRaw, savedRaw] = await Promise.all([
+  const [applicationsRaw, savedRaw, planStatus] = await Promise.all([
     email
       ? fetchList(`${API_BASE}/ApplyGet/${encodeURIComponent(email)}`)
       : [],
     email
       ? fetchList(`${API_BASE}/SavedTuitionsGet/${encodeURIComponent(email)}`)
       : [],
+    email ? fetchPlanStatus(email) : null,
   ]);
 
   const appliedItems: StudentTuitionItem[] = applicationsRaw.map(
@@ -113,7 +125,11 @@ export default async function StudentDashboardOverviewPage() {
 
   const realItems: StudentTuitionItem[] = [...appliedItems, ...savedItems];
   const studentName = String(user?.name || user?.email || "Student");
-  const isPro = Boolean((user as { payment?: boolean })?.payment);
+  // হিন্ট: Pro ব্যাজ আসল paid প্ল্যান স্ট্যাটাস থেকে নেওয়া হচ্ছে (আগে session user-এর
+  // `payment` ফিল্ড দেখত, যা BetterAuth user-এ থাকে না — তাই সবসময় false হতো)।
+  const isPro =
+    Boolean(planStatus?.isActivePlan) ||
+    Boolean((user as { payment?: boolean })?.payment);
 
   return (
     <section className="mx-auto w-full max-w-6xl">

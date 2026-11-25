@@ -9,8 +9,9 @@ export async function proxy(request: NextRequest) {
     
 
     if (!user) {
-        return NextResponse.redirect(new URL('/', request.url))
+        return NextResponse.redirect(new URL('/sign-in', request.url))
     }
+    return;
 
 }
 
@@ -18,5 +19,5 @@ export async function proxy(request: NextRequest) {
 // export default function proxy(request: NextRequest) { ... }
 
 export const config = {
-    matcher: []
+    matcher: ['/profile','/view','/success',]
 }
