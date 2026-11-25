@@ -16,6 +16,25 @@ import { ServerUser } from "@/lib/ServerUser";
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
+// ============================================================================
+// হিন্ট: পেমেন্ট · Teacher Profile Setting (Teacher Pro প্ল্যান কার্ড)
+// ============================================================================
+// হিন্ট (কী): এই পেজের একদম নিচে <TeacherPlanSection /> বসানো আছে — টিচারের
+//   Free Starter vs Teacher Pro কার্ড এবং Stripe "Update Plan" বাটন।
+//
+// হিন্ট (কেন): প্রোফাইল আপডেট করতে আসা টিচার যেন এখান থেকেই প্ল্যান কিনতে পারে,
+//   আলাদা pricing পেজে যেতে না হয়। currentPlan="starter" পাঠানো হয় যাতে প্রথম
+//   রেন্ডারে Free অবস্থা ধরে নেয়।
+//
+// হিন্ট (কীভাবে): কম্পোনেন্ট নিজেই GET /GetPlanStatus/:email ডেকে আসল স্ট্যাটাস আনে →
+//   active থাকলে বাটন disabled হয়ে "Pro Plan Active · till <তারিখ>" দেখায়,
+//   আর active না থাকলে ক্লিকে POST /PaymentPending → POST /api/checkout_sessions
+//   → Stripe পেজে redirect হয়।
+//
+// হিন্ট: teacherEmail / teacherId props-এ logged-in টিচারের email ও id যাচ্ছে —
+//   Stripe session-এর metadata-তে সেই email-ই যায়, তাই পেমেন্ট শেষে প্ল্যান ঠিক
+//   এই অ্যাকাউন্টেই activate হয়।
+// ============================================================================
 export default async function TeacherProfilePage() {
   const user = await ServerUser();
 

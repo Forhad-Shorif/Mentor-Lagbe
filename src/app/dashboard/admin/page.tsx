@@ -11,8 +11,9 @@ import {
   Wallet,
 } from "lucide-react";
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL;
+const API_BASE = (
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+).replace(/\/+$/, "");
 
 interface OverviewData {
   totalUsers: number;
@@ -48,9 +49,33 @@ async function getOverviewData(): Promise<OverviewData> {
   ]);
 
   const totalUsers = users.length;
-  const paidUsers = users.filter((u: { payment?: boolean }) =>
-    Boolean(u?.payment)
-  ).length;
+
+  // হিন্ট: "Pro ইউজার" সংখ্যা UsersData.payment ফ্ল্যাগ দিয়ে গুনলে ভুল আসে — Stripe
+  //   ওই ফ্ল্যাগ সেট করে না (সেটা শুধু admin ম্যানুয়ালি দেয়)। তাই paid রশিদের
+  //   distinct email গোনা হচ্ছে, আর admin-granted (payment: true) অ্যাকাউন্টগুলোও
+  //   যোগ করা হচ্ছে, যাতে দুটোই একসাথে ধরা পড়ে।
+  const paidReceiptEmails = new Set<string>(
+    payments
+      .filter(
+        (p: { status?: string; payment?: boolean }) =>
+          Boolean(p?.payment) ||
+          ["paid", "completed", "success"].includes(
+            String(p?.status || "").toLowerCase()
+          )
+      )
+      .map((p: { email?: string }) =>
+        String(p?.email || "").trim().toLowerCase()
+      )
+      .filter(Boolean)
+  );
+
+  for (const u of users as { email?: string; payment?: boolean }[]) {
+    if (!u?.payment) continue;
+    const flagEmail = String(u?.email || "").trim().toLowerCase();
+    if (flagEmail) paidReceiptEmails.add(flagEmail);
+  }
+
+  const paidUsers = paidReceiptEmails.size;
   const blockedUsers = users.filter(
     (u: { status?: string }) => u?.status === "blocked"
   ).length;

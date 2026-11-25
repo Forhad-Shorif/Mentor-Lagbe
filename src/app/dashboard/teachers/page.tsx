@@ -23,6 +23,24 @@ async function loadArray(url: string) {
   }
 }
 
+// ============================================================================
+// হিন্ট: পেমেন্ট · Teacher Dashboard Overview (রশিদ কার্ড)
+// ============================================================================
+// হিন্ট (কী): এই পেজ টিচারের টিউশন, অ্যাপ্লিকেশন আর নিচে <PaymentReceiptCard />
+//   দেখায় — অর্থাৎ টিচার নিজের সব পেমেন্ট রশিদ এখানেই দেখতে পায়।
+//
+// হিন্ট (কেন): প্ল্যান কেনার পর প্রমাণ হিসেবে রশিদ থাকা দরকার; টিচার Stripe থেকে
+//   ফিরে এসে নিশ্চিত হতে পারে টাকা কেটেছে ও মেয়াদ কখন শেষ হবে।
+//
+// হিন্ট (কীভাবে): সার্ভারে GET /TeacherTeutionsGet/:email আর
+//   GET /TeacherApplicationsGet/:email কল হয়। রশিদের ডেটা আসে ক্লায়েন্ট
+//   কম্পোনেন্ট PaymentReceiptCard থেকে → GET /GetReceipts/:email
+//   (paid + pending দুটোই আসে, paid গুলোই "Paid" ব্যাজ পায়)।
+//
+// হিন্ট: এখানে প্ল্যান active কি না তা দেখানো হয় না — সেটা দেখা যায়
+//   /dashboard/teachers/profile-setting পেজের TeacherPlanSection-এ
+//   (GET /GetPlanStatus/:email)। রশিদ কার্ড = হিসাব, প্ল্যান কার্ড = মেয়াদ।
+// ============================================================================
 export default async function TutorOverviewPage() {
   const user = await ServerUser();
   const email = String(user?.email || "").trim().toLowerCase();

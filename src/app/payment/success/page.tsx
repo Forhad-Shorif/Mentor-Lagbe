@@ -41,12 +41,36 @@ function getLoggedInUser() {
   }
 }
 
+// ============================================================================
+// হিন্ট: পেমেন্ট ফ্লো · পুরনো/বিকল্প Success Page (/payment/success)
+// ============================================================================
+// হিন্ট (কী): এটি Client Component দিয়ে বানানো পুরনো success পেজ। Stripe পেমেন্টের
+//   পর ইউজারকে এখানে পাঠানো হয় যদি checkout session ব্যাকএন্ডের
+//   POST /CreateCheckoutSession রুট দিয়ে তৈরি হয় (সেটার success_url এই পেজ)।
+//
+// হিন্ট (কেন): এখন মূল ফ্লো Next.js-এর /api/checkout_sessions → /success পেজ দিয়ে
+//   চলে। কিন্তু পুরনো রুটটা না ভাঙার জন্য এই পেজটা রাখা হয়েছে — দুটোই একই
+//   /VerifyPayment কল করে, তাই রশিদ/প্ল্যান একই ভাবে সেভ হয়।
+//
+// হিন্ট (কীভাবে) — guard গুলো এখানে ব্রাউজারে চলে:
+//   ১) session_id "cs_" দিয়ে শুরু না হলে → "Direct access is not allowed"।
+//   ২) logged-in user না থাকলে → /login এ redirect।
+//   ৩) sessionStorage-এ stripe_checkout_started না থাকলে → Invalid navigation।
+//      (এই flag টা প্ল্যান বাটনে Stripe-এ যাওয়ার ঠিক আগে সেট হয়।)
+//   ৪) সব ঠিক থাকলে POST {backendUrl}/VerifyPayment → verified + receipt এলে
+//      রশিদ দেখায় এবং flag টা মুছে ফেলে (ফাঁকা ভাবে আবার ঢোকা যাবে না)।
+//
+// হিন্ট: মনে রাখো — এখানে চেক শুধু UX/ব্রাউজার লেভেলে। আসল যাচাই সবসময়
+//   ব্যাকএন্ডের /VerifyPayment করে (Stripe থেকে session retrieve করে)।
+// ============================================================================
 export default function PaymentSuccessPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const sessionId = (searchParams.get("session_id") || "").trim();
 
-  const backendUrl = process.env.NEXT_PUBLIC_API_URL 
+  const backendUrl = (
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+  ).replace(/\/+$/, "");
    
   const [verifying, setVerifying] = useState(true);
   const [verified, setVerified] = useState(false);
@@ -79,7 +103,7 @@ export default function PaymentSuccessPage() {
 
       // Guard 2: লগইন ইউজার না থাকলে লগইনে পাঠানো
       if (!currentUser?.email) {
-        router.replace("/login");
+        router.replace("/sign-in");
         return;
       }
 

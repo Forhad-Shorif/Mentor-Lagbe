@@ -20,7 +20,9 @@ interface AdminPaymentsViewProps {
 
 type PaymentFilter = "all" | "paid" | "pending";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
+const API_BASE = (
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+).replace(/\/+$/, "");
 
 function notifyOnce(type: "success" | "error", id: string, message: string) {
   showToast[type](message, { id });

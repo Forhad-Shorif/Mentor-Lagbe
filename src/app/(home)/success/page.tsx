@@ -89,6 +89,31 @@ const formatDate = (value?: string) => {
   });
 };
 
+// ============================================================================
+// হিন্ট: পেমেন্ট ফ্লো — ধাপ ৪ · /success (Stripe থেকে ফেরার পেজ)
+// ============================================================================
+// হিন্ট (কী): Stripe সফল পেমেন্টের পর ইউজারকে এখানে ফেরত পাঠায়
+//   (?session_id=cs_xxx)। এটি Server Component — ব্রাউজারে কোনো গোপন key যায় না।
+//
+// হিন্ট (কেন): Stripe "পেমেন্ট হয়েছে" বললেই অন্ধভাবে বিশ্বাস করা যায় না; সার্ভার
+//   থেকে session আবার যাচাই করে তবেই রশিদ সেভ ও প্ল্যান চালু করা হয়।
+//
+// হিন্ট (কীভাবে) — ঠিক এই ক্রমে কোড চলে:
+//   ১) searchParams থেকে session_id নেওয়া হয়। না থাকলে → "No payment session" কার্ড।
+//   ২) stripe.checkout.sessions.retrieve(id, { expand: ["line_items"] }) —
+//      id ভুল/পুরনো হলে catch → "Invalid session" কার্ড।
+//   ৩) session.status === "open" মানে পেমেন্টই হয়নি → /pricing এ redirect।
+//   ৪) status !== "complete" বা payment_status !== "paid" → "Payment processing" কার্ড।
+//   ৫) পেইড হলে সার্ভার-থেকে-সার্ভার POST {API_BASE}/VerifyPayment পাঠানো হয়
+//      (sessionId + email) → ব্যাকএন্ড pending রেকর্ডকে paid করে প্ল্যান activate করে।
+//   ৬) রেসপন্সের receipt দিয়ে প্ল্যান নাম, টাকা, মেয়াদ, রশিদ নম্বর, valid-until দেখানো হয়।
+//
+// হিন্ট: ব্যাকএন্ড ডাউন থাকলেও Stripe-এর নিজের session ডেটা দিয়ে পেজটা দেখানো হয়
+//   (fallback receiptId), তাই ইউজার ফাঁকা স্ক্রিন দেখে না।
+//
+// হিন্ট: মেয়াদ কোথা থেকে? receipt.planExpiresAt ← /VerifyPayment যা হিসাব করে
+//   (এখন + durationDays দিন)। তাই এই পেজে দেখানো তারিখটাই ডেটাবেসে সেভ হওয়া তারিখ।
+// ============================================================================
 export default async function Success({ searchParams }: SuccessPageProps) {
   const params = await searchParams;
   const sessionId = String(params.session_id || "").trim();

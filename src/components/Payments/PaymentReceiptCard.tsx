@@ -62,7 +62,9 @@ export default function PaymentReceiptCard() {
   const [receipts, setReceipts] = useState<PaymentReceiptItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-  const backendUrl = process.env.NEXT_PUBLIC_API_URL || "";
+  const backendUrl = (
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+  ).replace(/\/+$/, "");
 
   useEffect(() => {
     if (!loggedInEmail) {
@@ -208,7 +210,9 @@ export default function PaymentReceiptCard() {
               )}
 
               <span className="text-sm font-extrabold text-slate-900 dark:text-white">
-                {receipt.currency || "$"} {receipt.amountTotal}
+                {Number.isFinite(Number(receipt.amountTotal))
+                  ? `${receipt.currency || "$"} ${receipt.amountTotal}`
+                  : "—"}
               </span>
 
               <span

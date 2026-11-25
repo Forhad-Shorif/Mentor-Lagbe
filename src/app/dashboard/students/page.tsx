@@ -34,6 +34,26 @@ async function fetchPlanStatus(email: string) {
   }
 }
 
+// ============================================================================
+// হিন্ট: পেমেন্ট · Student Dashboard Overview (Pro ব্যাজ + Free লিমিট)
+// ============================================================================
+// হিন্ট (কী): এখানে স্টুডেন্টের Apply/Save করা টিউশনের লিস্ট আর "Pro" ব্যাজ দেখানো হয়।
+//
+// হিন্ট (কেন): Pro কি না সেটা BetterAuth session.user.payment থেকে নেওয়া যাবে না —
+//   BetterAuth ওই ফিল্ডটা কখনো সেভ করে না, তাই সেটা সবসময় false হতো। Pro-এর আসল
+//   উৎস হলো paid রশিদ → তাই ব্যাকএন্ডের /GetPlanStatus/:email কল করা হয়।
+//
+// হিন্ট (কীভাবে): fetchPlanStatus() → GET /GetPlanStatus/:email →
+//   { isActivePlan, activePlanKey, planExpiresAt }। isActivePlan সত্য হলে isPro = true।
+//   পাশাপাশি admin-এর ম্যানুয়াল payment ফ্ল্যাগ থাকলেও fallback হিসেবে ধরা হয়।
+//
+// হিন্ট: এই isPro কোথায় কাজে লাগে? UI-তে Pro ব্যাজ দেখানোয়। আর আসল ২-এর বেশি
+//   Apply/Save করার অনুমতি ব্যাকএন্ড নিজেই দেয় (/GetApplyCount, /ApplyPost,
+//   /SavedTuitions), কারণ ক্লায়েন্টের কথায় লিমিট খোলা/বন্ধ হয় না।
+//
+// হিন্ট: ব্যাকএন্ড ডাউন থাকলে fetchPlanStatus null দেয় → ব্যাজ দেখাবে না, কিন্তু
+//   পেজ ক্র্যাশ করবে না (fallback: ফ্রি ইউজার ধরা হয়)।
+// ============================================================================
 export default async function StudentDashboardOverviewPage() {
   const user = await ServerUser();
   const email = String(user?.email || "").trim().toLowerCase();

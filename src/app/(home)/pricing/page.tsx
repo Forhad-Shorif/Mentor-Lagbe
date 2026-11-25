@@ -10,6 +10,33 @@ import TeacherPlanSection from "@/components/Payments/TeacherPlanSection";
 import StudentPlanSection from "@/components/Payments/StudentPlanSection";
 import { ServerUser } from "@/lib/ServerUser";
 
+// ============================================================================
+// হিন্ট: পেমেন্ট ফ্লো — ধাপ ১ · Pricing Page (প্ল্যান বাছাইয়ের দরজা)
+// ============================================================================
+// হিন্ট (কী): এই পেজে Student ও Teacher-এর Free/Pro প্ল্যান কার্ড দেখানো হয়।
+//   আসল পেমেন্ট বাটনগুলো আলাদা কম্পোনেন্টে থাকে — StudentPlanSection ও
+//   TeacherPlanSection (src/components/Payments/)।
+//
+// হিন্ট (কেন): ইউজারের role দেখে শুধু তার জন্য প্রযোজ্য প্ল্যানটা দেখানো হয়, যাতে
+//   স্টুডেন্ট ভুল করে টিচারের প্ল্যান না কেনে (দাম ও মেয়াদ আলাদা)।
+//
+// হিন্ট (কীভাবে): ServerUser() দিয়ে লগইন করা ইউজারের role পড়া হয় → isStudent /
+//   isTeacher ঠিক হয় → সেই অনুযায়ী <StudentPlanSection /> বা
+//   <TeacherPlanSection /> রেন্ডার হয়। লগইন না থাকলে দুটোই দেখানো হয়।
+//
+// হিন্ট: "Update Plan" বাটনে ক্লিক করলে ঠিক কী হয় (ধাপে ধাপে):
+//   ১) কম্পোনেন্ট ব্যাকএন্ডে POST /PaymentPending পাঠায় → payment:false,
+//      status:"pending" একটি রেকর্ড জমা হয় (পেমেন্ট না করে ফিরে এলে এটাই থেকে যায়)।
+//   ২) তারপর POST /api/checkout_sessions (Next.js-এর নিজের route) কল হয় →
+//      planKey থেকে Stripe Price ID বেছে Stripe Checkout Session তৈরি হয়।
+//   ৩) রেসপন্সের data.url পেলে ব্রাউজার সরাসরি Stripe-এর হোস্টেড পেমেন্ট পেজে যায়।
+//
+// হিন্ট: পেমেন্ট সফল হলে Stripe ইউজারকে ফেরত পাঠায় /success?session_id=... পেজে।
+//   সেখানে আসল রশিদ তৈরি হয় ও প্ল্যান activate হয় — (home)/success/page.tsx দেখো।
+//
+// হিন্ট: দাম/মেয়াদ কোথা থেকে আসে? এখানে শুধু currentPlan prop দেওয়া হয়; আসল দাম
+//   (student $10/$27, teacher $15/$39) ও planKey কম্পোনেন্টের ভেতরে ঠিক হয়।
+// ============================================================================
 export default async function PricingPage() {
   const user = await ServerUser();
   const rawRole = String(user?.role || "").toLowerCase();

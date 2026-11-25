@@ -51,7 +51,11 @@ export default function StudentPlanSection({
   const proPrice = billingCycle === "monthly" ? 10 : 27;
   const durationDays = billingCycle === "monthly" ? 30 : 90;
   const planKey = billingCycle === "monthly" ? "student_1m" : "student_3m";
-  const amountInCents = proPrice * 100;
+
+  // হিন্ট: `amount` ডলারে পাঠানো হয় (সেন্টে নয়) — ব্যাকএন্ড /PaymentPending এটাকে
+  //   সরাসরি amountTotal হিসেবে সেভ করে এবং অ্যাডমিন/রশিদ কার্ডে সেটাই দেখায়।
+  //   আগে সেন্ট (১০০০) যেত, তাই pending রেকর্ডে "$1000" দেখাত।
+  //   আসল চার্জ হয় Stripe Price ID থেকে, তাই এখানকার সংখ্যা শুধু রেকর্ড/প্রদর্শনের জন্য।
 
   // হিন্ট (কী): স্টুডেন্টের ইমেইল থাকলে ব্যাকএন্ড থেকে প্ল্যানের মেয়াদ ও active অবস্থা যাচাই করা হচ্ছে।
   // হিন্ট (কেন): মেয়াদ শেষ হলে বা পেমেন্ট রেকর্ড মুছে গেলে যেন আবার আপগ্রেড করতে পারে,
@@ -120,7 +124,7 @@ export default function StudentPlanSection({
     if (!studentEmail) {
       showToast.error("Please log in as a student first.");
       const nextUrl = `${pathname}?returnTo=${encodeURIComponent(targetReturnTo)}`;
-      router.push(`/login?callbackUrl=${encodeURIComponent(nextUrl)}`);
+      router.push(`/sign-in?callbackUrl=${encodeURIComponent(nextUrl)}`);
       return;
     }
 
@@ -147,7 +151,7 @@ export default function StudentPlanSection({
         planKey,
         billingCycle,
         durationDays,
-        amount: amountInCents,
+        amount: proPrice,
         userId: studentId || "",
         returnTo: targetReturnTo,
       };

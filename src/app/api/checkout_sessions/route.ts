@@ -48,7 +48,10 @@ export async function POST(req: NextRequest) {
     // হিন্ট (কেন): success_url ও cancel_url বানাতে অ্যাপের base URL দরকার, আর origin null এলে লিংক ভেঙে যেতে পারে।
     // হিন্ট (কীভাবে): origin না পেলে NEXT_PUBLIC_APP_URL বা localhost:3000 fallback হিসেবে ব্যবহার করা হচ্ছে।
     const headersList = await headers();
-    const origin = headersList.get("origin") || process.env.NEXT_PUBLIC_APP_URL 
+    const origin =
+      headersList.get("origin") ||
+      process.env.NEXT_PUBLIC_APP_URL ||
+      "http://localhost:3000";
 
     // হিন্ট (কী): ফ্রন্টএন্ড থেকে পাঠানো JSON body থেকে planKey, returnTo ও ইউজারের তথ্য পড়া হচ্ছে।
     // হিন্ট (কেন): খালি বা ভুল JSON এলে যেন সার্ভার crash না করে, তাই আলাদা try/catch রাখা হয়েছে।
@@ -60,6 +63,7 @@ export async function POST(req: NextRequest) {
       name?: string;
       image?: string;
       role?: string;
+      amount?: number;
     } = {};
 
     try {
@@ -90,7 +94,9 @@ export async function POST(req: NextRequest) {
     // হিন্ট (কী): Stripe Checkout-এ যাওয়ার আগেই ব্যাকএন্ডে payment: false দিয়ে একটি pending রেকর্ড পাঠানো হচ্ছে।
     // হিন্ট (কেন): ইউজার Stripe পেজে গিয়ে পেমেন্ট না করে ব্যাক করলে যেন রেকর্ডটি payment: false হিসেবে থেকে যায়।
     // হিন্ট (কীভাবে): email থাকলে /PaymentPending endpoint-এ POST করা হচ্ছে; ব্যাকএন্ড ডাউন থাকলেও .catch(() => null) দিয়ে মূল flow আটকানো হচ্ছে না।
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL
+    const backendUrl = (
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+    ).replace(/\/+$/, "");
 
     if (body.email) {
       await fetch(`${backendUrl}/PaymentPending`, {
@@ -102,6 +108,7 @@ export async function POST(req: NextRequest) {
           image: body.image || "",
           role: body.role || selectedPlan.role,
           planKey,
+          amount: Number(body.amount) || 0,
           durationDays: selectedPlan.days,
           payment: false,
           status: "pending",

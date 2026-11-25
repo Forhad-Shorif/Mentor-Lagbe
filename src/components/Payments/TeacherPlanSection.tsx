@@ -54,7 +54,9 @@ export default function TeacherPlanSection({
   const proPrice = billingCycle === "monthly" ? 15 : 39;
   const durationDays = billingCycle === "monthly" ? 30 : 90;
   const planKey = billingCycle === "monthly" ? "teacher_1m" : "teacher_3m";
-  const amountInCents = proPrice * 100;
+
+  // হিন্ট: `amount` ডলারে (সেন্টে নয়)। /PaymentPending এটাই amountTotal হিসেবে
+  //   সেভ হয়, তাই pending রেকর্ডে "$1500" নয় বরং "$15" দেখাবে।
 
   // হিন্ট (কী): টিচারের ইমেইল থাকলে ব্যাকএন্ড থেকে প্ল্যানের মেয়াদ ও active অবস্থা যাচাই করা হচ্ছে।
   // হিন্ট (কেন): মেয়াদ শেষ হলে যেন আবার আপগ্রেড করতে পারে এবং active থাকলে ডুপ্লিকেট পেমেন্ট না হয়।
@@ -124,7 +126,7 @@ export default function TeacherPlanSection({
     if (!teacherEmail) {
       showToast.error("Please log in as a teacher first.");
       const nextUrl = `${pathname}?returnTo=${encodeURIComponent(targetReturnTo)}`;
-      router.push(`/login?callbackUrl=${encodeURIComponent(nextUrl)}`);
+      router.push(`/sign-in?callbackUrl=${encodeURIComponent(nextUrl)}`);
       return;
     }
 
@@ -151,7 +153,7 @@ export default function TeacherPlanSection({
         planKey,
         billingCycle,
         durationDays,
-        amount: amountInCents,
+        amount: proPrice,
         userId: teacherId || "",
         returnTo: targetReturnTo,
       };
