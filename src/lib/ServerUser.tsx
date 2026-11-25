@@ -9,14 +9,23 @@ export const ServerUser = async () => {
     })
     return session?.user
 };
-      
-export const Authoraization = async (role:string) => {
+
+export const Authoraization = async (role: string) => {
 
     const session = await auth.api.getSession({
         headers: await headers() // you need to pass the headers object.
     })
-    if(!session || session?.user.role !== role){
+    if (!session || session?.user.role !== role) {
         redirect('/Unauthorized')
     }
     return session;
+}
+
+
+export const Authentications = async (Id:string) => {
+     console.log("UnAuthorized User Id:",Id)
+    if (Id) {
+        redirect('/Unauthorized')
+    }
+    return Id;
 }
