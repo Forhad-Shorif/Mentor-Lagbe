@@ -58,7 +58,7 @@ export default function PostTuitionForm() {
   const [formKey, setFormKey] = useState(0);
 
   const backendUrl =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    process.env.NEXT_PUBLIC_API_URL || "";
 
   const highlightTags = highlightsInput
     .split(",")

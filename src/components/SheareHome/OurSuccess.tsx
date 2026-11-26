@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -10,221 +11,311 @@ import {
   StarIcon,
 } from "@hugeicons/core-free-icons";
 
-// হিন্ট: Average Rating স্থির রাখা হয়েছে যেন পরে রিয়েল ডেটা দিয়ে আপডেট করা যায়।
-const FIXED_AVERAGE_RATING = "4.9/5";
+type TuitionItem = {
+  _id?: string;
+  deliveryMode?: string;
+  mode?: string;
+  location?: string;
+  area?: string;
+};
 
-// হিন্ট: ইমেজ ছাড়াই Online ও Offline সাফল্য কার্ডগুলো সব ডিভাইসে ক্লিন ও প্রিমিয়াম লুকে দেখানো হচ্ছে।
-const stories = [
-  {
-    mode: "Online",
-    icon: EarthIcon,
-    title: "Classes from anywhere",
-    student: "Nusrat J. · HSC · Dhaka",
-    quote:
-      "Found a Math tutor in just 3 days. Every class was online, right at my desk.",
-    stats: [
-      { value: "1,200+", label: "Online tuitions matched" },
-      { value: FIXED_AVERAGE_RATING, label: "Average tutor rating (fixed)" },
-    ],
-    cta: "Browse online tuitions",
-    href: "/browsetuitions?mode=online",
-    topBarClass: "from-teal-500 via-cyan-500 to-emerald-400",
-    badgeClass:
-      "bg-teal-600 text-white dark:bg-teal-400 dark:text-[#04121a]",
-    chipClass:
-      "bg-teal-50 text-teal-800 border border-teal-200/80 dark:bg-teal-400/10 dark:text-teal-200 dark:border-teal-400/20",
-  },
-  {
-    mode: "Offline",
-    icon: Location01Icon,
-    title: "Learning face to face",
-    student: "Rafi A. · Class 10 · Chattogram",
-    quote:
-      "A home tutor came twice a week. My grades moved from C to A in one term.",
-    stats: [
-      { value: "1,300+", label: "Home tuitions matched" },
-      { value: "64", label: "Areas covered" },
-    ],
-    cta: "Browse offline tuitions",
-    href: "/browsetuitions?mode=offline",
-    topBarClass: "from-cyan-500 via-teal-500 to-sky-400",
-    badgeClass:
-      "bg-teal-600 text-white dark:bg-teal-400 dark:text-[#04121a]",
-    chipClass:
-      "bg-cyan-50 text-cyan-800 border border-cyan-200/80 dark:bg-cyan-400/10 dark:text-cyan-200 dark:border-cyan-400/20",
-  },
-];
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
-// হিন্ট: নিচের Summary বারে কোনো ডুপ্লিকেট সংখ্যা নেই; Average Rating স্থির রাখা হয়েছে।
-const summaryItems = [
-  {
-    icon: EarthIcon,
-    value: "Online & Offline",
-    label: "Flexible learning modes",
-  },
-  {
-    icon: Location01Icon,
-    value: "64",
-    label: "Areas covered across BD",
-  },
-  {
-    icon: StarIcon,
-    value: FIXED_AVERAGE_RATING,
-    label: "Average rating (fixed)",
-  },
-];
+// TODO: পরে রিভিউ API এলে আসল রেটিং বসাবেন; আপাতত "No rating yet" রাখা হয়েছে।
+const NO_RATING_TEXT = "No rating yet";
 
 const OurSuccessStats = () => {
+  const [onlineCount, setOnlineCount] = useState(0);
+  const [offlineCount, setOfflineCount] = useState(0);
+  const [areaCount, setAreaCount] = useState(0);
+
+  // হিন্ট: limit ছাড়াই ${API_BASE}/TuitionsSearch?status=active থেকে সব একটিভ টিউশন আনা হচ্ছে।
+  useEffect(() => {
+    let active = true;
+
+    async function loadTuitions() {
+      try {
+        const res = await fetch(`${API_BASE}/TuitionsSearch?status=active`, {
+          cache: "no-store",
+        });
+        if (!res.ok) return;
+
+        const data = await res.json();
+        const items: TuitionItem[] = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.tuitions)
+          ? data.tuitions
+          : Array.isArray(data?.data)
+          ? data.data
+          : [];
+
+        let online = 0;
+        let offline = 0;
+        const uniqueAreas = new Set<string>();
+
+        for (const item of items) {
+          const modeValue = String(item?.deliveryMode || item?.mode || "")
+            .trim()
+            .toLowerCase();
+
+          if (modeValue.includes("online")) {
+            online += 1;
+          }
+          if (modeValue.includes("offline") || modeValue.includes("hybrid")) {
+            offline += 1;
+          }
+
+          const rawArea = String(item?.location || item?.area || "").trim();
+          if (rawArea) {
+            uniqueAreas.add(rawArea.toLowerCase());
+          }
+        }
+
+        if (active) {
+          setOnlineCount(online);
+          setOfflineCount(offline);
+          setAreaCount(uniqueAreas.size);
+        }
+      } catch {
+        // এরর হলে সংখ্যাগুলো 0 থাকবে
+      }
+    }
+
+    loadTuitions();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
-    <section className="relative isolate overflow-hidden bg-gradient-to-b from-teal-50/75 via-white to-teal-50/35 py-16 sm:py-20 dark:from-[#050b10] dark:via-[#07161b] dark:to-[#050b10]">
-      {/* ---------- Background ---------- */}
+    <section className="relative isolate overflow-hidden bg-gradient-to-b from-amber-50/75 via-slate-50/80 to-cyan-50/50 py-16 sm:py-20 dark:from-[#08121a] dark:via-[#060e16] dark:to-[#050b10]">
+      {/* সোনালি, রুপালি ও বর্ণালী সফট ব্যাকগ্রাউন্ড */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(13,148,136,0.14),transparent_60%)] dark:bg-[radial-gradient(ellipse_at_top,rgba(20,184,166,0.18),transparent_60%)]" />
-        <div className="absolute -left-24 top-20 size-80 rounded-full bg-teal-300/25 blur-3xl dark:bg-teal-500/10" />
-        <div className="absolute -right-24 bottom-8 size-80 rounded-full bg-cyan-300/25 blur-3xl dark:bg-cyan-500/10" />
+        <div className="absolute -left-20 top-14 size-72 rounded-full bg-amber-300/35 blur-3xl dark:bg-amber-400/12" />
+        <div className="absolute right-10 top-6 size-72 rounded-full bg-slate-300/50 blur-3xl dark:bg-slate-400/10" />
+        <div className="absolute -right-20 bottom-10 size-80 rounded-full bg-gradient-to-br from-cyan-300/30 via-fuchsia-300/25 to-amber-300/30 blur-3xl dark:from-cyan-500/12 dark:via-fuchsia-500/10 dark:to-amber-400/12" />
       </div>
 
       <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
-        {/* ---------- Heading ---------- */}
+        {/* Heading */}
         <div className="mx-auto max-w-2xl text-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-teal-200/90 bg-white/90 px-3.5 py-1.5 text-[11px] font-bold tracking-[0.18em] text-teal-700 uppercase shadow-2xs backdrop-blur dark:border-teal-400/25 dark:bg-white/5 dark:text-teal-300">
-            <span className="size-1.5 rounded-full bg-teal-500 shadow-[0_0_8px_rgba(20,184,166,0.8)] dark:bg-teal-400" />
+          <span className="inline-flex items-center gap-2 rounded-full border border-amber-300/90 bg-gradient-to-r from-amber-50 via-white to-slate-100 px-3.5 py-1.5 text-[11px] font-extrabold tracking-[0.16em] text-amber-800 uppercase shadow-2xs dark:border-amber-300/30 dark:from-amber-400/10 dark:via-white/[0.04] dark:to-slate-300/10 dark:text-amber-200">
+            <span className="size-1.5 rounded-full bg-gradient-to-r from-amber-500 to-fuchsia-500" />
             Our success story
           </span>
 
-          <h2 className="mt-5 text-3xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-4xl lg:text-[2.75rem] dark:text-white">
+          <h2 className="mt-4 text-3xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-4xl lg:text-[2.65rem] dark:text-white">
             Two ways to learn.{" "}
-            <span className="relative inline-block bg-gradient-to-r from-teal-600 via-teal-500 to-cyan-600 bg-clip-text text-transparent dark:from-teal-300 dark:to-cyan-300">
+            <span className="bg-gradient-to-r from-amber-600 via-fuchsia-600 to-cyan-600 bg-clip-text text-transparent dark:from-amber-300 dark:via-fuchsia-300 dark:to-cyan-300">
               One goal
-              <svg
-                aria-hidden
-                viewBox="0 0 160 12"
-                fill="none"
-                className="absolute -bottom-1.5 left-0 h-3 w-full text-teal-500/65 dark:text-teal-300/60"
-              >
-                <path
-                  d="M4 8C40 3.5 100 3 156 6"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                  strokeLinecap="round"
-                />
-              </svg>
             </span>
           </h2>
 
-          <p className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-slate-600 sm:text-base dark:text-slate-400">
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-slate-600 sm:text-base dark:text-slate-400">
             Tutors post tuitions, students apply — some join from home, some
             learn in a classroom nearby. Either way, the result is the same.
           </p>
         </div>
 
-        {/* ---------- Image-less Cards (All Devices Responsive) ---------- */}
-        <div className="mt-10 grid grid-cols-1 gap-6 lg:mt-12 lg:grid-cols-2">
-          {stories.map((story) => (
-            <article
-              key={story.mode}
-              className="group relative flex flex-col justify-between overflow-hidden rounded-[28px] border border-teal-200/75 bg-white/95 shadow-[0_24px_50px_-35px_rgba(13,148,136,0.45)] transition-all duration-300 hover:-translate-y-1 hover:border-teal-300 hover:shadow-[0_28px_60px_-30px_rgba(13,148,136,0.6)] dark:border-white/10 dark:bg-white/[0.04] dark:hover:border-teal-400/35"
-            >
-              {/* Top accent bar */}
-              <div
-                aria-hidden
-                className={`h-1.5 w-full bg-gradient-to-r ${story.topBarClass}`}
-              />
+        {/* Online & Offline Cards */}
+        <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {/* Online Card (সোনালি + বর্ণালী) */}
+          <article className="flex flex-col justify-between overflow-hidden rounded-[26px] border border-amber-300/85 bg-gradient-to-b from-amber-50/60 via-white to-slate-50/80 shadow-[0_18px_40px_-26px_rgba(217,119,6,0.45)] transition-all duration-300 hover:-translate-y-1 dark:border-amber-300/25 dark:from-[#16140f] dark:via-[#08131b] dark:to-[#071118]">
+            <div className="h-1.5 w-full bg-gradient-to-r from-amber-400 via-fuchsia-500 to-cyan-500" />
 
-              <div className="flex flex-1 flex-col justify-between p-5 sm:p-7">
-                <div>
-                  {/* Mode & Success story badges */}
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span
-                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold tracking-wide shadow-2xs ${story.badgeClass}`}
-                    >
-                      <HugeiconsIcon
-                        icon={story.icon}
-                        size={14}
-                        strokeWidth={2}
-                      />
-                      {story.mode.toUpperCase()}
-                    </span>
+            <div className="flex flex-1 flex-col justify-between p-5 sm:p-7">
+              <div>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-3 py-1 text-[11px] font-extrabold text-white dark:from-amber-400 dark:to-yellow-400 dark:text-slate-950">
+                    <HugeiconsIcon icon={EarthIcon} size={14} strokeWidth={2} />
+                    ONLINE
+                  </span>
 
-                    <span
-                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${story.chipClass}`}
-                    >
-                      <HugeiconsIcon
-                        icon={CheckmarkBadge01Icon}
-                        size={13}
-                        strokeWidth={2}
-                      />
-                      Success story
-                    </span>
-                  </div>
-
-                  {/* Title & Quote */}
-                  <h3 className="mt-4 text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl dark:text-white">
-                    {story.title}
-                  </h3>
-
-                  <p className="mt-3 border-l-2 border-teal-500/80 pl-3.5 text-sm leading-relaxed text-slate-700 sm:text-[15px] dark:text-slate-300">
-                    &ldquo;{story.quote}&rdquo;
-                  </p>
-
-                  <p className="mt-3 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                    {story.student}
-                  </p>
-                </div>
-
-                {/* Stats + CTA */}
-                <div className="mt-6">
-                  <div className="grid grid-cols-2 divide-x divide-teal-200/70 overflow-hidden rounded-2xl border border-teal-200/70 bg-gradient-to-r from-teal-50/80 to-cyan-50/50 py-3.5 text-center dark:divide-white/10 dark:border-white/10 dark:from-teal-500/10 dark:to-cyan-500/5">
-                    {story.stats.map((stat) => (
-                      <div key={stat.label} className="px-3">
-                        <p className="text-lg font-extrabold tracking-tight text-slate-900 sm:text-xl dark:text-white">
-                          {stat.value}
-                        </p>
-                        <p className="mt-0.5 text-[11px] font-medium leading-tight text-slate-600 dark:text-slate-400">
-                          {stat.label}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-
-                  <Link
-                    href={story.href}
-                    className="group/link mt-5 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-teal-600/10 px-4 py-2.5 text-sm font-bold text-teal-700 transition-all hover:bg-teal-600 hover:text-white sm:w-auto dark:bg-teal-400/10 dark:text-teal-300 dark:hover:bg-teal-400 dark:hover:text-slate-950"
-                  >
-                    {story.cta}
+                  <span className="inline-flex items-center gap-1 rounded-full border border-amber-300/80 bg-white/90 px-2.5 py-1 text-[11px] font-bold text-amber-800 dark:border-amber-300/25 dark:bg-white/5 dark:text-amber-200">
                     <HugeiconsIcon
-                      icon={ArrowRight01Icon}
-                      size={16}
-                      strokeWidth={2.2}
-                      className="transition-transform duration-300 group-hover/link:translate-x-0.5"
+                      icon={CheckmarkBadge01Icon}
+                      size={13}
+                      strokeWidth={2}
                     />
-                  </Link>
+                    Live data
+                  </span>
                 </div>
+
+                <h3 className="mt-4 text-xl font-extrabold text-slate-900 sm:text-2xl dark:text-white">
+                  Classes from anywhere
+                </h3>
+
+                <p className="mt-3 border-l-2 border-amber-400 pl-3.5 text-sm leading-relaxed text-slate-700 sm:text-[15px] dark:text-slate-300">
+                  &ldquo;Found a Math tutor in just 3 days. Every class was
+                  online, right at my desk.&rdquo;
+                </p>
+
+                <p className="mt-3 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                  Nusrat J. · HSC · Dhaka
+                </p>
               </div>
-            </article>
-          ))}
+
+              <div className="mt-6">
+                <div className="grid grid-cols-2 divide-x divide-amber-200/80 rounded-2xl border border-amber-300/70 bg-white/90 py-3.5 text-center dark:divide-white/10 dark:border-amber-300/20 dark:bg-white/[0.04]">
+                  <div className="px-3">
+                    <p className="bg-gradient-to-r from-amber-700 to-fuchsia-700 bg-clip-text text-lg font-extrabold text-transparent sm:text-xl dark:from-amber-300 dark:to-fuchsia-300">
+                      {onlineCount}
+                    </p>
+                    <p className="mt-0.5 text-[11px] font-medium text-slate-600 dark:text-slate-400">
+                      Online tuitions
+                    </p>
+                  </div>
+
+                  <div className="px-3">
+                    <p className="text-sm font-extrabold text-slate-800 sm:text-base dark:text-slate-200">
+                      {NO_RATING_TEXT}
+                    </p>
+                    <p className="mt-0.5 text-[11px] font-medium text-slate-600 dark:text-slate-400">
+                      Tutor rating
+                    </p>
+                  </div>
+                </div>
+
+                <Link
+                  href="/browsetuitions?mode=online"
+                  className="mt-5 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:brightness-105 sm:w-auto dark:from-amber-400 dark:to-yellow-400 dark:text-slate-950"
+                >
+                  Browse online tuitions
+                  <HugeiconsIcon
+                    icon={ArrowRight01Icon}
+                    size={16}
+                    strokeWidth={2.2}
+                  />
+                </Link>
+              </div>
+            </div>
+          </article>
+
+          {/* Offline Card (রুপালি + বর্ণালী) */}
+          <article className="flex flex-col justify-between overflow-hidden rounded-[26px] border border-slate-300/90 bg-gradient-to-b from-slate-100/80 via-white to-cyan-50/70 shadow-[0_18px_40px_-26px_rgba(15,23,42,0.35)] transition-all duration-300 hover:-translate-y-1 dark:border-slate-400/25 dark:from-[#0f1722] dark:via-[#08131b] dark:to-[#07161c]">
+            <div className="h-1.5 w-full bg-gradient-to-r from-slate-400 via-cyan-500 to-violet-500" />
+
+            <div className="flex flex-1 flex-col justify-between p-5 sm:p-7">
+              <div>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-slate-700 to-cyan-700 px-3 py-1 text-[11px] font-extrabold text-white dark:from-slate-200 dark:to-cyan-200 dark:text-slate-950">
+                    <HugeiconsIcon
+                      icon={Location01Icon}
+                      size={14}
+                      strokeWidth={2}
+                    />
+                    OFFLINE
+                  </span>
+
+                  <span className="inline-flex items-center gap-1 rounded-full border border-slate-300/90 bg-white/90 px-2.5 py-1 text-[11px] font-bold text-slate-700 dark:border-white/15 dark:bg-white/5 dark:text-slate-200">
+                    <HugeiconsIcon
+                      icon={CheckmarkBadge01Icon}
+                      size={13}
+                      strokeWidth={2}
+                    />
+                    Live data
+                  </span>
+                </div>
+
+                <h3 className="mt-4 text-xl font-extrabold text-slate-900 sm:text-2xl dark:text-white">
+                  Learning face to face
+                </h3>
+
+                <p className="mt-3 border-l-2 border-cyan-500 pl-3.5 text-sm leading-relaxed text-slate-700 sm:text-[15px] dark:text-slate-300">
+                  &ldquo;A home tutor came twice a week. My grades moved from C to
+                  A in one term.&rdquo;
+                </p>
+
+                <p className="mt-3 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                  Rafi A. · Class 10 · Chattogram
+                </p>
+              </div>
+
+              <div className="mt-6">
+                <div className="grid grid-cols-2 divide-x divide-slate-200/90 rounded-2xl border border-slate-300/80 bg-white/90 py-3.5 text-center dark:divide-white/10 dark:border-white/15 dark:bg-white/[0.04]">
+                  <div className="px-3">
+                    <p className="bg-gradient-to-r from-slate-800 via-cyan-700 to-violet-700 bg-clip-text text-lg font-extrabold text-transparent sm:text-xl dark:from-slate-100 dark:via-cyan-300 dark:to-violet-300">
+                      {offlineCount}
+                    </p>
+                    <p className="mt-0.5 text-[11px] font-medium text-slate-600 dark:text-slate-400">
+                      Offline tuitions
+                    </p>
+                  </div>
+
+                  <div className="px-3">
+                    <p className="text-lg font-extrabold text-slate-900 sm:text-xl dark:text-white">
+                      {areaCount}
+                    </p>
+                    <p className="mt-0.5 text-[11px] font-medium text-slate-600 dark:text-slate-400">
+                      Active areas
+                    </p>
+                  </div>
+                </div>
+
+                <Link
+                  href="/browsetuitions?mode=offline"
+                  className="mt-5 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-slate-800 via-cyan-700 to-teal-700 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:brightness-105 sm:w-auto dark:from-slate-200 dark:to-cyan-300 dark:text-slate-950"
+                >
+                  Browse offline tuitions
+                  <HugeiconsIcon
+                    icon={ArrowRight01Icon}
+                    size={16}
+                    strokeWidth={2.2}
+                  />
+                </Link>
+              </div>
+            </div>
+          </article>
         </div>
 
-        {/* ---------- Fixed Rating & Mode Summary ---------- */}
-        <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3 lg:mt-8">
-          {summaryItems.map((item) => (
-            <div
-              key={item.label}
-              className="flex items-center gap-3.5 rounded-2xl border border-teal-200/70 bg-white/90 px-5 py-4 shadow-2xs transition-colors hover:border-teal-300 dark:border-white/10 dark:bg-[#070f16]/90 dark:hover:border-teal-400/30"
-            >
-              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-teal-500/15 to-cyan-500/15 text-teal-600 ring-1 ring-teal-500/20 dark:text-teal-300">
-                <HugeiconsIcon icon={item.icon} size={19} strokeWidth={1.9} />
+        {/* Summary Strip */}
+        <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="flex items-center gap-3.5 rounded-2xl border border-amber-300/80 bg-white/95 px-5 py-4 shadow-2xs dark:border-amber-300/20 dark:bg-white/[0.04]">
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-amber-400/25 to-orange-400/20 text-amber-700 dark:text-amber-300">
+              <HugeiconsIcon icon={EarthIcon} size={19} strokeWidth={1.9} />
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-base font-extrabold text-slate-900 dark:text-white">
+                {onlineCount} Online / {offlineCount} Offline
               </span>
-              <span className="min-w-0">
-                <span className="block truncate text-base font-extrabold tracking-tight text-slate-900 dark:text-white">
-                  {item.value}
-                </span>
-                <span className="block truncate text-[11px] font-medium text-slate-600 dark:text-slate-400">
-                  {item.label}
-                </span>
+              <span className="block truncate text-[11px] font-medium text-slate-600 dark:text-slate-400">
+                Active learning modes
               </span>
-            </div>
-          ))}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3.5 rounded-2xl border border-slate-300/90 bg-white/95 px-5 py-4 shadow-2xs dark:border-white/15 dark:bg-white/[0.04]">
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-slate-200 to-cyan-200/80 text-slate-800 dark:from-slate-300/20 dark:to-cyan-300/15 dark:text-cyan-200">
+              <HugeiconsIcon
+                icon={Location01Icon}
+                size={19}
+                strokeWidth={1.9}
+              />
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-base font-extrabold text-slate-900 dark:text-white">
+                {areaCount}
+              </span>
+              <span className="block truncate text-[11px] font-medium text-slate-600 dark:text-slate-400">
+                Areas from active tuitions
+              </span>
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3.5 rounded-2xl border border-fuchsia-300/75 bg-white/95 px-5 py-4 shadow-2xs dark:border-fuchsia-400/20 dark:bg-white/[0.04]">
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-fuchsia-400/20 to-amber-300/25 text-fuchsia-700 dark:text-amber-300">
+              <HugeiconsIcon icon={StarIcon} size={19} strokeWidth={1.9} />
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-base font-extrabold text-slate-900 dark:text-white">
+                {NO_RATING_TEXT}
+              </span>
+              <span className="block truncate text-[11px] font-medium text-slate-600 dark:text-slate-400">
+                Average rating
+              </span>
+            </span>
+          </div>
         </div>
       </div>
     </section>
