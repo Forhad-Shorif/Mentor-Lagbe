@@ -7,7 +7,7 @@ interface FeaturedTeachersMarqueeProps {
   teachers: FeaturedTeacher[];
 }
 
-// Ekjon teacher er subject list theke marquee card er chhoto line banano hoy.
+// হিন্ট: এক জন টিচারের সাবজেক্ট লিস্ট থেকে কার্ডের সংক্ষিপ্ত লাইন তৈরি করা হচ্ছে।
 function getTeacherSubject(teacher: FeaturedTeacher): string {
   if (Array.isArray(teacher.subjects) && teacher.subjects.length > 0) {
     return teacher.subjects.slice(0, 2).join(" · ");
@@ -15,8 +15,7 @@ function getTeacherSubject(teacher: FeaturedTeacher): string {
   return teacher.headline || "Mentor at MentorLagbe";
 }
 
-// Card kom hole track viewport er cheye chhoto hoye jay —
-// tai list ta repeat kore kompokkhe 8 ta card banano hoy.
+// হিন্ট: ট্র্যাক যেন ছোট না হয়ে যায় সেজন্য কমপক্ষে ৮টি কার্ড রাখা হচ্ছে।
 function fillItems(teachers: FeaturedTeacher[]): FeaturedTeacher[] {
   if (teachers.length === 0) return [];
   const target = 8;
@@ -60,7 +59,6 @@ export default function FeaturedTeachersMarquee({
       </div>
 
       <div className="group relative w-full overflow-hidden">
-        {/* Bame/dane soft fade — marquee edge smooth dekhabe */}
         <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-gradient-to-r from-white to-transparent dark:from-[#050b10] sm:w-20" />
         <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-gradient-to-l from-white to-transparent dark:from-[#050b10] sm:w-20" />
 
@@ -74,31 +72,32 @@ export default function FeaturedTeachersMarquee({
               {items.map((teacher, index) => (
                 <article
                   key={`${teacher.id}-${groupIndex}-${index}`}
-                  className="w-48 shrink-0 overflow-hidden rounded-2xl border border-teal-200/75 bg-white shadow-2xs transition-transform duration-200 hover:-translate-y-1 dark:border-white/10 dark:bg-white/[0.04]"
+                  className="w-52 shrink-0 overflow-hidden rounded-2xl border border-teal-200/80 bg-white p-2.5 shadow-2xs transition-transform duration-200 hover:-translate-y-1 dark:border-white/10 dark:bg-white/[0.04]"
                 >
-                  <div className="h-36 w-full overflow-hidden bg-teal-50/70 dark:bg-slate-900">
+                  {/* বর্গাকার (aspect-square) প্রোফাইল ইমেজ ফ্রেম */}
+                  <div className="aspect-square w-full overflow-hidden rounded-xl bg-gradient-to-br from-teal-50 via-cyan-50/60 to-white ring-1 ring-teal-200/60 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 dark:ring-white/10">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={teacher.image}
                       alt={teacher.name}
-                      className="h-full w-full object-cover object-top"
+                      className="h-full w-full object-cover object-top transition-transform duration-300 hover:scale-105"
                       loading="lazy"
                     />
                   </div>
 
-                  <div className="p-3 text-center">
-                    <p className="truncate text-sm font-bold text-slate-900 dark:text-white">
+                  <div className="pt-3 pb-1 px-1 text-center">
+                    <p className="truncate text-sm font-extrabold text-slate-900 dark:text-white">
                       {teacher.name}
                     </p>
 
-                    <p className="mt-0.5 truncate text-[11px] text-slate-500 dark:text-slate-400">
+                    <p className="mt-0.5 truncate text-[11px] font-medium text-slate-500 dark:text-slate-400">
                       {getTeacherSubject(teacher)}
                     </p>
 
-                    <div className="mt-2 flex items-center justify-center gap-1 text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+                    <div className="mt-2 flex items-center justify-center gap-2 text-[10px] font-semibold text-slate-500 dark:text-slate-400">
                       {teacher.teachingMode && (
                         <span className="inline-flex min-w-0 items-center gap-1">
-                          <Monitor className="h-3 w-3 shrink-0" />
+                          <Monitor className="h-3 w-3 shrink-0 text-teal-600 dark:text-teal-400" />
                           <span className="truncate">
                             {teacher.teachingMode}
                           </span>
@@ -107,7 +106,7 @@ export default function FeaturedTeachersMarquee({
 
                       {teacher.location && (
                         <span className="inline-flex min-w-0 items-center gap-1">
-                          <MapPin className="h-3 w-3 shrink-0" />
+                          <MapPin className="h-3 w-3 shrink-0 text-teal-600 dark:text-teal-400" />
                           <span className="truncate">{teacher.location}</span>
                         </span>
                       )}
