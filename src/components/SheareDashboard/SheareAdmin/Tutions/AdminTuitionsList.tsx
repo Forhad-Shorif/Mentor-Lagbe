@@ -15,6 +15,7 @@ import { showToast } from "@/lib/utils/toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import DeleteTuitionConfirmButton from "./DeleteTuitionConfirmButton";
 
 export interface AdminTuitionItem {
   _id: string;
@@ -29,12 +30,12 @@ export interface AdminTuitionItem {
   mentorEmail?: string;
   status?: "active" | "closed" | string;
   verificationStatus?:
-    | "pending"
-    | "approved"
-    | "verified"
-    | "revoked"
-    | "rejected"
-    | string;
+  | "pending"
+  | "approved"
+  | "verified"
+  | "revoked"
+  | "rejected"
+  | string;
 }
 
 interface AdminTuitionsListProps {
@@ -171,11 +172,10 @@ export default function AdminTuitionsList({
         <button
           type="button"
           onClick={() => setActiveTab("all")}
-          className={`inline-flex h-8 items-center gap-2 rounded-xl px-3.5 text-xs font-extrabold transition ${
-            activeTab === "all"
+          className={`inline-flex h-8 items-center gap-2 rounded-xl px-3.5 text-xs font-extrabold transition ${activeTab === "all"
               ? "bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 shadow-xs"
               : "bg-transparent text-slate-700 hover:bg-amber-400/15 dark:text-slate-300 dark:hover:bg-amber-400/10"
-          }`}
+            }`}
         >
           <span>All</span>
           <span className="rounded-full bg-black/10 px-2 py-0.5 text-[10px] font-black dark:bg-white/15">
@@ -186,11 +186,10 @@ export default function AdminTuitionsList({
         <button
           type="button"
           onClick={() => setActiveTab("approved")}
-          className={`inline-flex h-8 items-center gap-2 rounded-xl px-3.5 text-xs font-extrabold transition ${
-            activeTab === "approved"
+          className={`inline-flex h-8 items-center gap-2 rounded-xl px-3.5 text-xs font-extrabold transition ${activeTab === "approved"
               ? "bg-emerald-600 text-white shadow-xs dark:bg-emerald-500 dark:text-slate-950"
               : "bg-transparent text-slate-700 hover:bg-emerald-500/10 dark:text-slate-300"
-          }`}
+            }`}
         >
           <span>Approved</span>
           <span className="rounded-full bg-black/10 px-2 py-0.5 text-[10px] font-black dark:bg-white/15">
@@ -201,11 +200,10 @@ export default function AdminTuitionsList({
         <button
           type="button"
           onClick={() => setActiveTab("revoked")}
-          className={`inline-flex h-8 items-center gap-2 rounded-xl px-3.5 text-xs font-extrabold transition ${
-            activeTab === "revoked"
+          className={`inline-flex h-8 items-center gap-2 rounded-xl px-3.5 text-xs font-extrabold transition ${activeTab === "revoked"
               ? "bg-amber-600 text-white shadow-xs dark:bg-amber-400 dark:text-slate-950"
               : "bg-transparent text-slate-700 hover:bg-amber-500/10 dark:text-slate-300"
-          }`}
+            }`}
         >
           <span>Revoked</span>
           <span className="rounded-full bg-black/10 px-2 py-0.5 text-[10px] font-black dark:bg-white/15">
@@ -241,8 +239,8 @@ export default function AdminTuitionsList({
             const modLabel = approved
               ? "Approved"
               : revoked
-              ? "Revoked"
-              : "Pending";
+                ? "Revoked"
+                : "Pending";
 
             const isBusy = busyId === tuition._id;
 
@@ -267,24 +265,22 @@ export default function AdminTuitionsList({
                       </Badge>
 
                       <span
-                        className={`inline-flex h-5 items-center gap-1 rounded-full border px-2 text-[10px] font-extrabold uppercase ${
-                          userStatus === "active"
+                        className={`inline-flex h-5 items-center gap-1 rounded-full border px-2 text-[10px] font-extrabold uppercase ${userStatus === "active"
                             ? "border-emerald-500/35 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
                             : "border-slate-400/35 bg-slate-500/10 text-slate-600 dark:text-slate-400"
-                        }`}
+                          }`}
                       >
                         <Activity className="h-2.5 w-2.5" />
                         <span>User: {userStatus}</span>
                       </span>
 
                       <span
-                        className={`inline-flex h-5 items-center rounded-full border px-2 text-[10px] font-extrabold uppercase ${
-                          approved
+                        className={`inline-flex h-5 items-center rounded-full border px-2 text-[10px] font-extrabold uppercase ${approved
                             ? "border-emerald-500/35 bg-emerald-500/15 text-emerald-800 dark:text-emerald-300"
                             : revoked
-                            ? "border-amber-500/40 bg-amber-500/15 text-amber-900 dark:text-amber-300"
-                            : "border-slate-300 bg-slate-100 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
-                        }`}
+                              ? "border-amber-500/40 bg-amber-500/15 text-amber-900 dark:text-amber-300"
+                              : "border-slate-300 bg-slate-100 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                          }`}
                       >
                         {modLabel}
                       </span>
@@ -307,7 +303,7 @@ export default function AdminTuitionsList({
                       </span>
 
                       <span className="font-bold text-slate-800 dark:text-slate-200">
-                        ৳ {fee}/mo
+                        $ {fee}/mo
                       </span>
                     </div>
                   </div>
@@ -337,16 +333,12 @@ export default function AdminTuitionsList({
                       <span>Revoke</span>
                     </Button>
 
-                    <Button
-                      type="button"
-                      size="sm"
-                      disabled={isBusy}
-                      onClick={() => handleDelete(tuition)}
-                      className="group relative h-8 gap-1.5 overflow-hidden rounded-xl border border-rose-500/40 bg-gradient-to-r from-rose-600 via-red-600 to-rose-500 px-3.5 text-xs font-extrabold text-white shadow-sm shadow-rose-600/20 transition-all duration-200 hover:-translate-y-0.5 hover:from-rose-500 hover:to-amber-500 hover:shadow-md hover:shadow-rose-500/30 active:scale-95 dark:border-rose-400/30 dark:from-rose-500/25 dark:via-rose-600/25 dark:to-amber-500/20 dark:text-rose-200 dark:hover:from-rose-500/40 dark:hover:to-amber-500/30 dark:hover:text-white"
-                    >
-                      <Trash2 className="h-3.5 w-3.5 transition-transform duration-200 group-hover:scale-110 group-hover:-rotate-12" />
-                      <span>{isBusy ? "Working..." : "Delete"}</span>
-                    </Button>
+                   
+                    <DeleteTuitionConfirmButton
+                      tuition={tuition}
+                      isBusy={isBusy}
+                      onConfirmDelete={handleDelete}
+                    />
                   </div>
                 </CardContent>
               </Card>

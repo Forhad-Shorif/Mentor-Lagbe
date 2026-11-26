@@ -169,7 +169,7 @@ const HeroBanner = () => {
           />
 
           <Image
-            src="/image.png"
+            src="/OpBanner.png"
             alt="A student learning with a tutor"
             width={1672}
             height={941}

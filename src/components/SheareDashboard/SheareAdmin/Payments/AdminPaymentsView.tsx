@@ -203,7 +203,7 @@ export default function AdminPaymentsView({
 
         <div className="inline-flex h-8 items-center gap-1.5 self-start rounded-xl border border-amber-400/35 bg-amber-400/10 px-3 text-xs font-extrabold text-amber-950 dark:text-amber-200 sm:self-auto">
           <CreditCard className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
-          <span>Paid Total: ৳ {stats.totalAmount.toLocaleString()}</span>
+          <span>Paid Total: $ {stats.totalAmount.toLocaleString()}</span>
         </div>
       </div>
 

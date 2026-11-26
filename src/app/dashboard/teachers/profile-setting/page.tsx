@@ -14,7 +14,7 @@ import TeacherPlanSection from "@/components/Payments/TeacherPlanSection";
 import { ServerUser } from "@/lib/ServerUser";
 
 const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  process.env.NEXT_PUBLIC_API_URL ;
 
 // ============================================================================
 // হিন্ট: পেমেন্ট · Teacher Profile Setting (Teacher Pro প্ল্যান কার্ড)
