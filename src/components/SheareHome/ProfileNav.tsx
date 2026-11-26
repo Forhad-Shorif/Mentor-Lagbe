@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -54,12 +54,34 @@ const getDashboardHref = (role?: string) => {
   return normalized ? `/dashboard/${normalized}` : "/";
 };
 
-// হিন্ট: মোবাইলে "Sign" বাটনে ক্লিক করলে ছোট মোডাল ডায়ালগ খোলে; ডায়ালগের বাইরে বা Close বাটনে ক্লিক করলে বন্ধ হয়।
+// হিন্ট: প্রোফাইল মেনুর মতোই "Sign" বাটনের ঠিক নিচে ছোট মেনু খোলে; বাইরে ক্লিক করলে অটো বন্ধ হয়।
 const GuestAuthNav = () => {
   const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const handleOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+
+    document.addEventListener("mousedown", handleOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
 
   return (
-    <div className="flex items-center gap-2">
+    <div ref={menuRef} className="relative flex items-center gap-2">
       {/* Desktop: Sign In ও Sign Up */}
       <div className="hidden items-center gap-2 sm:flex">
         <Link
@@ -79,54 +101,35 @@ const GuestAuthNav = () => {
       {/* Mobile: শুধু "Sign" বাটন */}
       <button
         type="button"
-        onClick={() => setOpen(true)}
-        className="inline-flex items-center rounded-full bg-gradient-to-r from-teal-600 to-cyan-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm sm:hidden dark:from-teal-400 dark:to-cyan-400 dark:text-slate-950"
+        onClick={() => setOpen((prev) => !prev)}
+        className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-teal-600 to-cyan-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm sm:hidden dark:from-teal-400 dark:to-cyan-400 dark:text-slate-950"
       >
-        Sign
+        <span>Sign</span>
+        <HugeiconsIcon
+          icon={ArrowDown01Icon}
+          size={14}
+          strokeWidth={2}
+          className={`transition-transform duration-150 ${open ? "rotate-180" : ""}`}
+        />
       </button>
 
-      {/* Simple Tiny Modal Dialog (বাইরে ক্লিক বা Close বাটনে বন্ধ হবে) */}
+      {/* Mobile Menu: বাটনের ঠিক নিচে খুলবে, বাইরে ক্লিক করলে অটো বন্ধ হবে */}
       {open && (
-        <div
-          onClick={() => setOpen(false)}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-[2px] sm:hidden"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-xs rounded-2xl border border-teal-200/80 bg-white p-5 text-center shadow-xl dark:border-white/10 dark:bg-[#09151c]"
+        <div className="absolute right-0 top-full z-50 mt-2 w-40 rounded-2xl border border-teal-200/80 bg-white/95 p-1.5 shadow-xl backdrop-blur-md sm:hidden dark:border-white/10 dark:bg-[#09151c]/95">
+          <Link
+            href="/sign-in"
+            onClick={() => setOpen(false)}
+            className="block rounded-xl px-3 py-2 text-xs font-bold text-slate-700 transition hover:bg-teal-50 hover:text-teal-700 dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-teal-300"
           >
-            <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
-              Welcome to MentorLagbe
-            </h3>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              Choose an option to continue
-            </p>
-
-            <div className="mt-4 flex flex-col gap-2">
-              <Link
-                href="/sign-in"
-                onClick={() => setOpen(false)}
-                className="w-full rounded-xl border border-teal-200 py-2 text-xs font-bold text-teal-700 hover:bg-teal-50 dark:border-white/15 dark:text-teal-300 dark:hover:bg-white/5"
-              >
-                Sign In
-              </Link>
-              <Link
-                href="/sign-up"
-                onClick={() => setOpen(false)}
-                className="w-full rounded-xl bg-teal-600 py-2 text-xs font-bold text-white hover:bg-teal-500 dark:bg-teal-400 dark:text-slate-950 dark:hover:bg-teal-300"
-              >
-                Sign Up
-              </Link>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              className="mt-3 text-[11px] font-semibold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-            >
-              Close
-            </button>
-          </div>
+            Sign In
+          </Link>
+          <Link
+            href="/sign-up"
+            onClick={() => setOpen(false)}
+            className="mt-1 block rounded-xl bg-teal-600 px-3 py-2 text-xs font-bold text-white transition hover:bg-teal-500 dark:bg-teal-400 dark:text-slate-950 dark:hover:bg-teal-300"
+          >
+            Sign Up
+          </Link>
         </div>
       )}
     </div>
