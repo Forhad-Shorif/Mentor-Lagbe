@@ -1,7 +1,5 @@
 import React from "react";
-import Link from "next/link";
 import {
-  ArrowLeft,
   CheckCircle2,
   Database,
   Eye,
@@ -10,6 +8,7 @@ import {
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
+import BackButton from "@/components/SheareUI/BackButton";
 
 const privacySections = [
   {

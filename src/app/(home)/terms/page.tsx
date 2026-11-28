@@ -1,7 +1,5 @@
 import React from "react";
-import Link from "next/link";
 import {
-  ArrowLeft,
   BookOpen,
   CheckCircle2,
   FileText,
@@ -9,6 +7,7 @@ import {
   Sparkles,
   Users,
 } from "lucide-react";
+import BackButton from "@/components/SheareUI/BackButton";
 
 const termsCards = [
   {

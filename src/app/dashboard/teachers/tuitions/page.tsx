@@ -4,33 +4,38 @@ import MyTuitionsList, {
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 
+// .env e NEXT_PUBLIC_API_URL na thakle local backend (port 8000) use hobe.
+// Empty string dile fetch URL relative hoye server e fail kore.
+const API_BASE = (
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+).replace(/\/+$/, "");
+
 export default async function TeacherTuitionsPage() {
-  const backendUrl =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-    const session = await auth.api.getSession({
-        headers: await headers() // you need to pass the headers object.
-    })
-       
-    const email = session?.user?.email
-
-  // আপনার সেশন/ইউজার থেকে teacher-এর email নিন (না থাকলে ফাঁকা থাকলে /Tuitions কল হবে)
-  const Email = email || "";
+  const email = String(session?.user?.email || "")
+    .trim()
+    .toLowerCase();
 
   let tuitions: TuitionItem[] = [];
 
-  try {
+  // Email chara /TeacherTeutionsGet/ call korle backend 400 dey, tai age check.
+  if (email) {
+    try {
+      const res = await fetch(
+        `${API_BASE}/TeacherTeutionsGet/${encodeURIComponent(email)}`,
+        { cache: "no-store" }
+      );
 
-    const res = await fetch( `${backendUrl}/TeacherTeutionsGet/${encodeURIComponent(Email)}`, {
-      cache: "no-store",
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      tuitions = Array.isArray(data) ? data : data?.tuitions || [];
+      if (res.ok) {
+        const data = await res.json();
+        tuitions = Array.isArray(data) ? data : data?.tuitions || [];
+      }
+    } catch (error) {
+      console.error("Failed to fetch tuitions:", error);
     }
-  } catch (error) {
-    console.error("Failed to fetch tuitions:", error);
   }
 
   return (

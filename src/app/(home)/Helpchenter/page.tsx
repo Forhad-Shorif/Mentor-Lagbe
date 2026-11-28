@@ -1,6 +1,6 @@
-import Link from "next/link";
-import { ArrowLeft, LifeBuoy, Sparkles } from "lucide-react";
+import { LifeBuoy, Sparkles } from "lucide-react";
 import HelpCenterInteractive from "@/components/SheareHome/Footer/HelpCenterInteractive";
+import BackButton from "@/components/SheareUI/BackButton";
 
 export default function HelpCenterPage() {
   return (

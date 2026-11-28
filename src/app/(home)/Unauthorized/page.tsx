@@ -1,6 +1,6 @@
 import React from "react";
-import Link from "next/link";
-import { ArrowLeft, ShieldAlert } from "lucide-react";
+import { ShieldAlert } from "lucide-react";
+import BackButton from "@/components/SheareUI/BackButton";
 
 interface UnauthorizedPageProps {
   backHref?: string;

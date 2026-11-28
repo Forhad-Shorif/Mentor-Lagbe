@@ -7,6 +7,7 @@ import {
     Calendar,
     GraduationCap,
     MapPin,
+    UserRound,
 } from "lucide-react";
 
 import type { TuitionItem } from "./BrowseTuitionsClient";
@@ -22,6 +23,9 @@ export default function TuitionCard({ item }: TuitionCardProps) {
     const isOnline = String(item.deliveryMode || "")
         .toLowerCase()
         .includes("online");
+
+    const mentorName = item.mentorName || item.name || "";
+    const mentorEmail = item.mentorEmail || item.email || "";
 
     return (
         <article className="group relative flex min-w-0 flex-col overflow-hidden rounded-[26px] border border-teal-200/80 bg-white shadow-[0_14px_34px_-24px_rgba(13,148,136,0.45)] transition-all duration-300 hover:-translate-y-1.5 hover:border-teal-400/80 hover:shadow-[0_24px_48px_-22px_rgba(8,145,178,0.45)] dark:border-white/10 dark:bg-[#071117] dark:hover:border-teal-400/45 dark:hover:shadow-[0_24px_50px_-22px_rgba(45,212,191,0.22)]">
@@ -107,6 +111,25 @@ export default function TuitionCard({ item }: TuitionCardProps) {
                             {item.classLevel || "All Levels"}
                         </span>
                     </p>
+
+                    {mentorName && (
+                        <p className="flex items-center gap-2.5">
+                            <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-violet-500/10 text-violet-700 dark:bg-violet-400/10 dark:text-violet-300">
+                                <UserRound className="size-3.5" />
+                            </span>
+                            {mentorEmail ? (
+                                <Link
+                                    href={`/teacherstutions/${encodeURIComponent(mentorEmail)}`}
+                                    title="See all tuitions by this teacher"
+                                    className="truncate font-semibold text-slate-700 underline-offset-2 transition hover:text-teal-700 hover:underline dark:text-slate-300 dark:hover:text-teal-300"
+                                >
+                                    {mentorName}
+                                </Link>
+                            ) : (
+                                <span className="truncate">{mentorName}</span>
+                            )}
+                        </p>
+                    )}
 
                     {item.weeklyClasses && (
                         <p className="flex items-center gap-2.5">

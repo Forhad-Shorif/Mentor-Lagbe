@@ -3,7 +3,10 @@ import { TeacherProfileForm } from "@/lib/Type/ProfileType";
 // Backend URL ek jaygay rakha hoy, jate sob function same URL use kore.
 // .env e NEXT_PUBLIC_API_URL na thakle local backend (port 8000) use hobe.
 const getBackendUrl = () =>
-  process.env.NEXT_PUBLIC_API_URL ;
+  (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(
+    /\/+$/,
+    ""
+  );
 
 // User profile (MongoDB "Profile" collection) er ekta document
 export interface UserProfileItem {

@@ -17,6 +17,9 @@ export interface TuitionItem {
     coverImageURL?: string;
     logoImageURL?: string;
     name?: string;
+    email?: string;
+    mentorEmail?: string;
+    mentorName?: string;
     status?: string;
 }
 
