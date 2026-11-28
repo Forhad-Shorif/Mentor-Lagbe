@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import RoleDialog, { UserRole } from "./RoleDialog";
 import BlockUserDialog from "./BlockUserDialog";
 import DeleteUserDialog from "./DeleteUserDialog";
+import ClientUser from "@/lib/ClientUser";
 
 export interface AdminUserRecord {
   _id: string;
@@ -29,7 +30,7 @@ export interface AdminUserRecord {
 }
 
 const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  process.env.NEXT_PUBLIC_API_URL || "";
 
 function notifyOnce(type: "success" | "error", id: string, message: string) {
   showToast[type](message, { id });
@@ -48,6 +49,7 @@ export default function AdminUsersView() {
   const [deleteTarget, setDeleteTarget] = useState<AdminUserRecord | null>(null);
 
   const hasFetchedRef = useRef(false);
+  const user = ClientUser()
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -59,8 +61,8 @@ export default function AdminUsersView() {
       const list = Array.isArray(data)
         ? data
         : Array.isArray(data?.users)
-        ? data.users
-        : [];
+          ? data.users
+          : [];
       setUsers(list);
     } catch {
       notifyOnce("error", "admin-users-fetch-error", "Could not load users");
@@ -76,6 +78,10 @@ export default function AdminUsersView() {
   }, [fetchUsers]);
 
   const handleTogglePayment = async (user: AdminUserRecord) => {
+    if (user?.role === "admin" && user?.email === "forhadshorif79@gmail.com") {
+      showToast.warning("Restricted! You cannot modify or delete the Website Owner's account.");
+      return;
+    }
     const nextPayment = !Boolean(user.payment);
     try {
       setPaymentUpdatingId(user._id);
@@ -109,6 +115,17 @@ export default function AdminUsersView() {
 
   const handleRoleUpdate = async (selectedRole: UserRole) => {
     if (!roleTarget) return;
+
+  if (user?.role === 'admin' && user?.email === roleTarget?.email ) {
+      showToast.success("Welcome back, Boss! You are the owner of MentorLagbe.");
+      return;
+    }
+
+    if (roleTarget?.role === "admin" && roleTarget?.email === "forhadshorif79@gmail.com") {
+      showToast.warning("Restricted! You cannot modify or delete the Website Owner's account.");
+      return;
+    }
+
     try {
       setActionLoading(true);
       const res = await fetch(`${API_BASE}/UpdateUserRole/${roleTarget._id}`, {
@@ -138,6 +155,18 @@ export default function AdminUsersView() {
 
   const handleBlockConfirm = async () => {
     if (!blockTarget) return;
+
+  if (user?.role === 'admin' && user?.email === blockTarget?.email ) {
+      showToast.success("Welcome back, Boss! You are the owner of MentorLagbe.");
+      return;
+    }
+
+    if (blockTarget?.role === "admin" && blockTarget?.email === "forhadshorif79@gmail.com") {
+      showToast.warning("Restricted! You cannot modify or delete the Website Owner's account.");
+      return;
+      
+    }
+  
     const nextStatus = blockTarget.status === "blocked" ? "active" : "blocked";
     try {
       setActionLoading(true);
@@ -168,6 +197,20 @@ export default function AdminUsersView() {
 
   const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
+
+
+     if (user?.role === 'admin' && user?.email === deleteTarget?.email ) {
+      showToast.success("Welcome back, Boss! You are the owner of MentorLagbe.");
+      return;
+    }
+
+    if (deleteTarget?.role === "admin" && deleteTarget?.email === "forhadshorif79@gmail.com") {
+      showToast.warning("Restricted! You cannot modify or delete the Website Owner's account.");
+      return;
+      
+    }
+
+
     try {
       setActionLoading(true);
       const res = await fetch(`${API_BASE}/DeleteUser/${deleteTarget._id}`, {
@@ -268,11 +311,10 @@ export default function AdminUsersView() {
 
                   <Badge
                     variant="secondary"
-                    className={`h-8 gap-1.5 rounded-xl border px-3 text-xs font-bold ${
-                      isPaid
-                        ? "border-amber-400/50 bg-amber-300/25 text-amber-950 dark:border-amber-400/45 dark:bg-amber-400/20 dark:text-amber-200"
-                        : "border-slate-300/70 bg-white/65 text-slate-700 dark:border-slate-700/80 dark:bg-slate-950/60 dark:text-slate-300"
-                    }`}
+                    className={`h-8 gap-1.5 rounded-xl border px-3 text-xs font-bold ${isPaid
+                      ? "border-amber-400/50 bg-amber-300/25 text-amber-950 dark:border-amber-400/45 dark:bg-amber-400/20 dark:text-amber-200"
+                      : "border-slate-300/70 bg-white/65 text-slate-700 dark:border-slate-700/80 dark:bg-slate-950/60 dark:text-slate-300"
+                      }`}
                   >
                     <CreditCard className="h-3.5 w-3.5 text-amber-700 dark:text-amber-400" />
                     <span>Payment: {isPaid ? "true" : "false"}</span>
@@ -287,9 +329,8 @@ export default function AdminUsersView() {
                     className="h-8 gap-1 rounded-xl border-amber-400/35 bg-white/75 px-2.5 text-xs font-bold text-slate-800 hover:border-amber-500/60 hover:bg-amber-50 dark:border-amber-400/25 dark:bg-slate-950/65 dark:text-slate-200 dark:hover:border-amber-400/50 dark:hover:bg-amber-400/10 dark:hover:text-white"
                   >
                     <RefreshCw
-                      className={`h-3 w-3 text-amber-600 dark:text-amber-400 ${
-                        isPaymentBusy ? "animate-spin" : ""
-                      }`}
+                      className={`h-3 w-3 text-amber-600 dark:text-amber-400 ${isPaymentBusy ? "animate-spin" : ""
+                        }`}
                     />
                     <span>{isPaid ? "Set Free" : "Set Paid"}</span>
                   </Button>

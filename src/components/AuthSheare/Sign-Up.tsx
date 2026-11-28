@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
   AlertCircle,
+  ArrowLeft,
   ArrowRight,
   BookOpen,
   Briefcase,
@@ -36,19 +37,19 @@ const roleOptions: {
   description: string
   icon: LucideIcon
 }[] = [
-  {
-    value: "students",
-    label: "Student",
-    description: "Find trusted tutors, track classes, and apply easily.",
-    icon: UserRound,
-  },
-  {
-    value: "teachers",
-    label: "Tutor",
-    description: "Discover tuition jobs, teach students, and grow.",
-    icon: Briefcase,
-  },
-]
+    {
+      value: "students",
+      label: "Student",
+      description: "Find trusted tutors, track classes, and apply easily.",
+      icon: UserRound,
+    },
+    {
+      value: "teachers",
+      label: "Tutor",
+      description: "Discover tuition jobs, teach students, and grow.",
+      icon: Briefcase,
+    },
+  ]
 
 // Role অনুযায়ী sign up-এর পর কোথায় যাবে
 const dashboardByRole: Record<SignUpRole, string> = {
@@ -78,6 +79,17 @@ export function SignUpForm() {
   const passedRules = passwordRules.filter((rule) => rule.test(password)).length
   const selectedRole =
     roleOptions.find((option) => option.value === role) ?? roleOptions[0]
+
+  /**
+   * ইউজার যেখান থেকে এসেছে সেখানে ফেরার হ্যান্ডলার
+   */
+  function handleGoBack() {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back()
+    } else {
+      router.push("/")
+    }
+  }
 
   /**
    * অ্যাকাউন্ট তৈরি হ্যান্ডলার
@@ -121,23 +133,40 @@ export function SignUpForm() {
   }
 
   return (
-    <section className="relative min-h-screen w-full overflow-hidden bg-slate-50 text-slate-900 transition-colors duration-300 dark:bg-slate-950 dark:text-slate-100">
-      {/* Ambient Background Glows (Light & Dark Adaptive) */}
-      <div className="pointer-events-none absolute -left-24 -top-24 h-80 w-80 rounded-full bg-cyan-400/20 blur-3xl dark:bg-cyan-500/15" />
-      <div className="pointer-events-none absolute -bottom-24 right-0 h-96 w-96 rounded-full bg-blue-500/15 blur-3xl dark:bg-blue-600/20" />
+    <section className="relative min-h-screen w-full overflow-hidden bg-gradient-to-b from-amber-50/55 via-slate-50 to-cyan-50/45 text-slate-900 transition-colors duration-300 dark:from-[#09121a] dark:via-slate-950 dark:to-[#060e16] dark:text-slate-100">
+      {/* Ambient Golden + Silver + Prismatic Glows */}
+      <div className="pointer-events-none absolute -left-24 -top-24 h-80 w-80 rounded-full bg-amber-300/30 blur-3xl dark:bg-amber-400/12" />
+      <div className="pointer-events-none absolute right-10 top-12 h-72 w-72 rounded-full bg-slate-300/45 blur-3xl dark:bg-slate-400/10" />
+      <div className="pointer-events-none absolute -bottom-24 right-0 h-96 w-96 rounded-full bg-gradient-to-br from-cyan-400/20 via-fuchsia-400/15 to-amber-300/25 blur-3xl dark:from-cyan-500/15 dark:via-fuchsia-500/10 dark:to-amber-400/15" />
 
       <div className="relative mx-auto grid min-h-screen max-w-7xl grid-cols-1 items-center gap-8 px-4 py-8 sm:px-6 lg:grid-cols-12 lg:gap-12 lg:px-8 lg:py-12">
         {/* Left Side: Full-Screen Brand & Role Showcase */}
-        <div className="flex flex-col justify-between rounded-[2.25rem] border border-slate-200/90 bg-gradient-to-br from-white via-cyan-50/60 to-sky-100/70 p-7 shadow-xl shadow-slate-200/60 backdrop-blur-xl dark:border-cyan-400/20 dark:from-slate-950 dark:via-[#07152b] dark:to-[#08233a] dark:shadow-[0_24px_70px_rgba(2,6,23,0.65)] lg:col-span-6 lg:min-h-[680px] lg:p-10">
+        <div className="flex flex-col justify-between rounded-[2.25rem] border border-amber-300/80 bg-gradient-to-br from-amber-50/85 via-white to-cyan-50/75 p-7 shadow-xl shadow-amber-900/10 backdrop-blur-xl dark:border-amber-300/20 dark:from-[#17140d] dark:via-[#07152b] dark:to-[#08233a] dark:shadow-[0_24px_70px_rgba(2,6,23,0.65)] lg:col-span-6 lg:min-h-[680px] lg:p-10">
           <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/25 bg-cyan-500/10 px-3.5 py-1.5 text-xs font-bold text-cyan-700 dark:border-cyan-400/30 dark:bg-cyan-400/10 dark:text-cyan-300">
-              <Sparkles className="h-3.5 w-3.5 text-cyan-600 dark:text-cyan-300" />
-              <span>MentorLagbe • Learn · Teach · Grow</span>
+            {/* Top Bar: Back Button + Brand Badge */}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+
+              {/* Back to Home Navigation Link */}
+              <div className="mt-5 text-center">
+                <Link
+                  className="group inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-5 py-2.5 text-xs font-semibold text-slate-600 shadow-2xs backdrop-blur-md transition hover:border-cyan-400/50 hover:text-slate-950 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300 dark:hover:border-cyan-400/35 dark:hover:text-white sm:text-sm"
+                  href="/"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5 transition-transform duration-200 group-hover:-translate-x-1" />
+                  <span>Back to Home</span>
+                </Link>
+              </div>
+
+              <div className="inline-flex items-center gap-2 rounded-full border border-slate-300/90 bg-white/85 px-3.5 py-1.5 text-xs font-extrabold text-amber-800 dark:border-cyan-400/25 dark:bg-cyan-400/10 dark:text-cyan-300">
+                <Sparkles className="h-3.5 w-3.5 text-amber-600 dark:text-amber-300" />
+                <span>MentorLagbe · Learn · Teach · Grow</span>
+              </div>
             </div>
 
+
             <div className="space-y-3">
-              <h1 className="bg-gradient-to-r from-slate-900 via-cyan-900 to-blue-800 bg-clip-text text-3xl font-black tracking-tight text-transparent dark:from-white dark:via-cyan-100 dark:to-sky-300 sm:text-4xl lg:text-[2.65rem] lg:leading-[1.12]">
-                Start your learning & tutoring journey today
+              <h1 className="bg-gradient-to-r from-slate-900 via-amber-800 to-cyan-800 bg-clip-text text-3xl font-black tracking-tight text-transparent dark:from-white dark:via-amber-200 dark:to-cyan-300 sm:text-4xl lg:text-[2.65rem] lg:leading-[1.12]">
+                Start your learning &amp; tutoring journey today
               </h1>
               <p className="max-w-xl text-sm leading-relaxed text-slate-600 dark:text-slate-300 sm:text-base">
                 Join as a student looking for dedicated tutors or as a teacher ready to guide learners and take tuition opportunities.
@@ -145,12 +174,12 @@ export function SignUpForm() {
             </div>
 
             {/* Active Role Preview Box */}
-            <div className="rounded-2xl border border-cyan-500/20 bg-white/80 p-4 shadow-xs backdrop-blur-md dark:border-cyan-400/20 dark:bg-slate-950/65">
+            <div className="rounded-2xl border border-amber-300/75 bg-white/85 p-4 shadow-xs backdrop-blur-md dark:border-cyan-400/20 dark:bg-slate-950/65">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[11px] font-extrabold uppercase tracking-wider text-cyan-700 dark:text-cyan-300">
+                <span className="text-[11px] font-extrabold uppercase tracking-wider text-amber-800 dark:text-amber-300">
                   Selected Role: {selectedRole.label}
                 </span>
-                <span className="rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
+                <span className="rounded-full border border-cyan-400/40 bg-gradient-to-r from-amber-500/15 to-cyan-500/15 px-2.5 py-0.5 text-[11px] font-bold text-cyan-800 dark:text-cyan-300">
                   Instant Workspace
                 </span>
               </div>
@@ -162,9 +191,9 @@ export function SignUpForm() {
 
           {/* Bottom Highlights */}
           <div className="mt-8 grid grid-cols-1 gap-3.5 pt-4 sm:grid-cols-2">
-            <div className="rounded-2xl border border-slate-200/80 bg-white/75 p-4 dark:border-white/10 dark:bg-slate-950/55">
+            <div className="rounded-2xl border border-slate-200/90 bg-white/80 p-4 dark:border-white/10 dark:bg-slate-950/55">
               <div className="flex items-center gap-2 text-xs font-extrabold text-slate-900 dark:text-white">
-                <BookOpen className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
+                <BookOpen className="h-4 w-4 text-amber-600 dark:text-amber-300" />
                 <span>Smart Tuition Matching</span>
               </div>
               <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
@@ -172,9 +201,9 @@ export function SignUpForm() {
               </p>
             </div>
 
-            <div className="rounded-2xl border border-slate-200/80 bg-white/75 p-4 dark:border-white/10 dark:bg-slate-950/55">
+            <div className="rounded-2xl border border-slate-200/90 bg-white/80 p-4 dark:border-white/10 dark:bg-slate-950/55">
               <div className="flex items-center gap-2 text-xs font-extrabold text-slate-900 dark:text-white">
-                <ShieldCheck className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
+                <ShieldCheck className="h-4 w-4 text-cyan-600 dark:text-cyan-300" />
                 <span>Role-Based Dashboard</span>
               </div>
               <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
@@ -186,15 +215,15 @@ export function SignUpForm() {
 
         {/* Right Side: Sign Up Form Card */}
         <div className="w-full lg:col-span-6">
-          <div className="mx-auto w-full max-w-lg rounded-[2.25rem] border border-slate-200/90 bg-white/90 p-6 shadow-xl shadow-slate-200/70 backdrop-blur-2xl transition-all duration-300 dark:border-cyan-400/20 dark:bg-slate-900/75 dark:shadow-[0_24px_65px_rgba(2,6,23,0.65)] sm:p-9">
+          <div className="mx-auto w-full max-w-lg rounded-[2.25rem] border border-slate-300/85 bg-white/90 p-6 shadow-xl shadow-slate-200/70 backdrop-blur-2xl transition-all duration-300 dark:border-amber-300/20 dark:bg-slate-900/75 dark:shadow-[0_24px_65px_rgba(2,6,23,0.65)] sm:p-9">
             {/* হেডার সেকশন */}
             <div className="mb-7 text-center">
-              <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-cyan-500/25 bg-cyan-500/10 px-3.5 py-1 text-xs font-bold text-cyan-700 dark:border-cyan-400/25 dark:bg-cyan-400/10 dark:text-cyan-300">
-                <Sparkles className="h-3.5 w-3.5" />
+              <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-amber-400/50 bg-gradient-to-r from-amber-500/12 via-white to-cyan-500/12 px-3.5 py-1 text-xs font-bold text-amber-800 dark:border-amber-300/25 dark:bg-cyan-400/10 dark:text-amber-200">
+                <Sparkles className="h-3.5 w-3.5 text-amber-600 dark:text-amber-300" />
                 <span>Create Your Account</span>
               </div>
 
-              <h2 className="bg-gradient-to-r from-slate-900 via-slate-800 to-cyan-800 bg-clip-text text-2xl font-black tracking-tight text-transparent dark:from-white dark:via-cyan-100 dark:to-sky-300 sm:text-3xl">
+              <h2 className="bg-gradient-to-r from-slate-900 via-amber-800 to-cyan-800 bg-clip-text text-2xl font-black tracking-tight text-transparent dark:from-white dark:via-amber-200 dark:to-cyan-300 sm:text-3xl">
                 Get Started Today
               </h2>
 
@@ -202,7 +231,7 @@ export function SignUpForm() {
                 Already have an account?{" "}
                 <Link
                   href="/sign-in"
-                  className="font-bold text-cyan-700 underline underline-offset-4 transition hover:text-cyan-600 dark:text-cyan-300 dark:hover:text-cyan-200"
+                  className="font-bold text-amber-700 underline underline-offset-4 transition hover:text-amber-600 dark:text-amber-300 dark:hover:text-amber-200"
                 >
                   Sign in
                 </Link>
@@ -249,11 +278,10 @@ export function SignUpForm() {
                         type="button"
                         onClick={() => setRole(option.value)}
                         aria-pressed={isSelected}
-                        className={`flex cursor-pointer flex-col items-center gap-1.5 rounded-2xl border px-3 py-3 text-xs font-bold transition-all duration-200 ${
-                          isSelected
-                            ? "border-cyan-500 bg-cyan-500/15 text-cyan-900 shadow-sm ring-2 ring-cyan-500/20 dark:border-cyan-400 dark:bg-cyan-400/15 dark:text-cyan-200"
-                            : "border-slate-200 bg-slate-50/80 text-slate-600 hover:border-cyan-400/50 hover:text-slate-900 dark:border-slate-800 dark:bg-slate-950/50 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:text-slate-200"
-                        }`}
+                        className={`flex cursor-pointer flex-col items-center gap-1.5 rounded-2xl border px-3 py-3 text-xs font-bold transition-all duration-200 ${isSelected
+                          ? "border-amber-500 bg-gradient-to-br from-amber-500/15 via-white to-cyan-500/15 text-slate-900 shadow-sm ring-2 ring-amber-400/30 dark:border-amber-300 dark:from-amber-400/15 dark:via-slate-900 dark:to-cyan-400/10 dark:text-amber-200"
+                          : "border-slate-200 bg-slate-50/80 text-slate-600 hover:border-amber-400/60 hover:text-slate-900 dark:border-slate-800 dark:bg-slate-950/50 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:text-slate-200"
+                          }`}
                       >
                         <Icon className="size-4" />
                         <span>{option.label}</span>
@@ -285,7 +313,7 @@ export function SignUpForm() {
                     placeholder="Ayesha Rahman"
                     autoComplete="name"
                     required
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/80 py-3 pl-11 pr-4 text-sm text-slate-900 placeholder-slate-400 shadow-2xs transition-all duration-200 focus:border-cyan-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-cyan-500/15 dark:border-slate-700/80 dark:bg-slate-950/65 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:border-cyan-400 dark:focus:bg-slate-950 dark:focus:ring-cyan-400/15"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/80 py-3 pl-11 pr-4 text-sm text-slate-900 placeholder-slate-400 shadow-2xs transition-all duration-200 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-amber-400/15 dark:border-slate-700/80 dark:bg-slate-950/65 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:border-amber-300 dark:focus:bg-slate-950 dark:focus:ring-amber-400/15"
                   />
                 </div>
               </div>
@@ -309,7 +337,7 @@ export function SignUpForm() {
                     placeholder="you@example.com"
                     autoComplete="email"
                     required
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/80 py-3 pl-11 pr-4 text-sm text-slate-900 placeholder-slate-400 shadow-2xs transition-all duration-200 focus:border-cyan-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-cyan-500/15 dark:border-slate-700/80 dark:bg-slate-950/65 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:border-cyan-400 dark:focus:bg-slate-950 dark:focus:ring-cyan-400/15"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/80 py-3 pl-11 pr-4 text-sm text-slate-900 placeholder-slate-400 shadow-2xs transition-all duration-200 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-amber-400/15 dark:border-slate-700/80 dark:bg-slate-950/65 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:border-amber-300 dark:focus:bg-slate-950 dark:focus:ring-amber-400/15"
                   />
                 </div>
               </div>
@@ -336,7 +364,7 @@ export function SignUpForm() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/80 py-3 pl-11 pr-11 text-sm text-slate-900 placeholder-slate-400 shadow-2xs transition-all duration-200 focus:border-cyan-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-cyan-500/15 dark:border-slate-700/80 dark:bg-slate-950/65 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:border-cyan-400 dark:focus:bg-slate-950 dark:focus:ring-cyan-400/15"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/80 py-3 pl-11 pr-11 text-sm text-slate-900 placeholder-slate-400 shadow-2xs transition-all duration-200 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-amber-400/15 dark:border-slate-700/80 dark:bg-slate-950/65 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:border-amber-300 dark:focus:bg-slate-950 dark:focus:ring-amber-400/15"
                   />
                   <button
                     type="button"
@@ -357,11 +385,10 @@ export function SignUpForm() {
                   {passwordRules.map((rule, index) => (
                     <span
                       key={rule.label}
-                      className={`h-1.5 rounded-full transition-all duration-300 ${
-                        index < passedRules
-                          ? "bg-emerald-500 dark:bg-emerald-400"
-                          : "bg-slate-200 dark:bg-slate-800"
-                      }`}
+                      className={`h-1.5 rounded-full transition-all duration-300 ${index < passedRules
+                        ? "bg-gradient-to-r from-amber-500 to-emerald-500 dark:from-amber-400 dark:to-emerald-400"
+                        : "bg-slate-200 dark:bg-slate-800"
+                        }`}
                     />
                   ))}
                 </div>
@@ -372,18 +399,16 @@ export function SignUpForm() {
                     return (
                       <li
                         key={rule.label}
-                        className={`flex items-center gap-2 text-[11px] ${
-                          passed
-                            ? "font-semibold text-emerald-600 dark:text-emerald-400"
-                            : "text-slate-500 dark:text-slate-400"
-                        }`}
+                        className={`flex items-center gap-2 text-[11px] ${passed
+                          ? "font-semibold text-emerald-600 dark:text-emerald-400"
+                          : "text-slate-500 dark:text-slate-400"
+                          }`}
                       >
                         <CheckCircle2
-                          className={`size-3 ${
-                            passed
-                              ? "text-emerald-500 dark:text-emerald-400"
-                              : "text-slate-400 dark:text-slate-600"
-                          }`}
+                          className={`size-3 ${passed
+                            ? "text-emerald-500 dark:text-emerald-400"
+                            : "text-slate-400 dark:text-slate-600"
+                            }`}
                         />
                         {rule.label}
                       </li>
@@ -397,20 +422,20 @@ export function SignUpForm() {
                   type="checkbox"
                   name="terms"
                   required
-                  className="mt-0.5 size-4 shrink-0 cursor-pointer rounded border-slate-300 accent-cyan-600 dark:border-slate-700 dark:bg-slate-950 dark:accent-cyan-400"
+                  className="mt-0.5 size-4 shrink-0 cursor-pointer rounded border-slate-300 accent-amber-600 dark:border-slate-700 dark:bg-slate-950 dark:accent-amber-400"
                 />
                 <span>
                   I agree to the{" "}
                   <Link
                     href="/terms"
-                    className="font-semibold text-cyan-700 hover:underline dark:text-cyan-300"
+                    className="font-semibold text-amber-700 hover:underline dark:text-amber-300"
                   >
                     Terms
                   </Link>{" "}
                   and{" "}
                   <Link
                     href="/privacy"
-                    className="font-semibold text-cyan-700 hover:underline dark:text-cyan-300"
+                    className="font-semibold text-amber-700 hover:underline dark:text-amber-300"
                   >
                     Privacy Policy
                   </Link>
@@ -421,7 +446,7 @@ export function SignUpForm() {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 text-sm font-extrabold text-white shadow-lg shadow-cyan-500/25 transition-all duration-200 hover:brightness-105 active:scale-[0.99] disabled:opacity-50 dark:from-cyan-400 dark:via-sky-400 dark:to-blue-500 dark:text-slate-950 dark:shadow-cyan-400/20"
+                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 via-teal-600 to-cyan-600 text-sm font-extrabold text-white shadow-lg shadow-amber-600/20 transition-all duration-200 hover:brightness-105 active:scale-[0.99] disabled:opacity-50 dark:from-amber-400 dark:via-teal-400 dark:to-cyan-400 dark:text-slate-950 dark:shadow-amber-400/20"
               >
                 {loading ? (
                   <span className="flex items-center gap-2">
@@ -436,6 +461,17 @@ export function SignUpForm() {
                 )}
               </button>
             </form>
+          </div>
+          {/* Smart Go Back Navigation Button */}
+          <div className="mt-5 text-center">
+            <button
+              type="button"
+              onClick={handleGoBack}
+              className="group inline-flex cursor-pointer items-center gap-2 rounded-full border border-amber-300/85 bg-gradient-to-r from-white via-slate-100/95 to-amber-50/90 px-5 py-2.5 text-xs font-bold text-slate-700 shadow-2xs backdrop-blur-md transition hover:-translate-x-0.5 hover:border-amber-400 hover:text-slate-950 dark:border-amber-300/25 dark:from-slate-900/80 dark:via-slate-900/65 dark:to-[#18150e] dark:text-amber-200 dark:hover:border-amber-300/45 dark:hover:text-white sm:text-sm"
+            >
+              <ArrowLeft className="h-3.5 w-3.5 text-amber-600 transition-transform duration-200 group-hover:-translate-x-1 dark:text-amber-300" />
+              <span>Go Back</span>
+            </button>
           </div>
         </div>
       </div>

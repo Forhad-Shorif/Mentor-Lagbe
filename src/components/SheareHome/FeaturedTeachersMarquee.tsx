@@ -2,6 +2,8 @@ import React from "react";
 import Link from "next/link";
 import { ArrowRight, MapPin, Monitor } from "lucide-react";
 import type { FeaturedTeacher } from "@/lib/featuredTeachers";
+import showToast from "@/lib/utils/toast";
+import { ServerUser } from "@/lib/ServerUser";
 
 interface FeaturedTeachersMarqueeProps {
   teachers: FeaturedTeacher[];
@@ -26,7 +28,7 @@ function fillItems(teachers: FeaturedTeacher[]): FeaturedTeacher[] {
   return items;
 }
 
-export default function FeaturedTeachersMarquee({
+export default async function FeaturedTeachersMarquee({
   teachers,
 }: FeaturedTeachersMarqueeProps) {
   if (!teachers || teachers.length === 0) {
@@ -34,6 +36,7 @@ export default function FeaturedTeachersMarquee({
   }
 
   const items = fillItems(teachers);
+  const user = await ServerUser();
 
   return (
     <section className="overflow-hidden bg-gradient-to-b from-white via-teal-50/40 to-white py-12 dark:from-[#050b10] dark:via-[#07161b] dark:to-[#050b10]">
@@ -111,14 +114,26 @@ export default function FeaturedTeachersMarquee({
                         </span>
                       )}
                     </div>
+                    {
+                      user ? (
+                        <Link
+                          href={`/teacher/${encodeURIComponent(teacher.email)}`}
+                          className="mt-3 inline-flex w-full items-center justify-center gap-1 rounded-xl bg-teal-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-teal-500 dark:bg-teal-400 dark:text-slate-950 dark:hover:bg-teal-300"
+                        >
+                          <span>View Tutor</span>
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </Link>
+                      ) : (
+                        <Link
+                          href='/sign-in'
+                          className="mt-3 inline-flex w-full items-center justify-center gap-1 rounded-xl bg-teal-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-teal-500 dark:bg-teal-400 dark:text-slate-950 dark:hover:bg-teal-300"
+                        >
+                          <span>View Tutor</span>
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </Link>
+                      )
+                    }
 
-                    <Link
-                      href={`/teacher/${encodeURIComponent(teacher.email)}`}
-                      className="mt-3 inline-flex w-full items-center justify-center gap-1 rounded-xl bg-teal-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-teal-500 dark:bg-teal-400 dark:text-slate-950 dark:hover:bg-teal-300"
-                    >
-                      <span>View Tutor</span>
-                      <ArrowRight className="h-3.5 w-3.5" />
-                    </Link>
                   </div>
                 </article>
               ))}

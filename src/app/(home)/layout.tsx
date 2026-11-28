@@ -1,5 +1,5 @@
 import Navbar from "@/components/SheareHome/Navbar";
-import Footer from "@/components/SheareHome/Footer";
+import Footer from "@/components/SheareHome/Footer/Footer";
 
 // (home) route group: sudhu home/marketing page gulor jonno.
 // Dashboard/Auth page e ei layout apply hobe na, tai navbar o dekhbe na.

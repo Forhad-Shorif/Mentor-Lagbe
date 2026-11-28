@@ -11,6 +11,9 @@ import {
   Wallet,
 } from "lucide-react";
 
+// import AdminDashboardPage from "@/components/SheareDashboard/SheareAdmin/Overview/AdminDashboardPage";
+import AdminSpotlightSection from "@/components/SheareDashboard/SheareAdmin/Overview/AdminSpotlightSection";
+
 const API_BASE = (
   process.env.NEXT_PUBLIC_API_URL || ""
 ).replace(/\/+$/, "");
@@ -119,26 +122,26 @@ async function getOverviewData(): Promise<OverviewData> {
 export default async function AdminOverviewPage() {
   const overviewData = await getOverviewData();
 
-  const quickLinks = [
-    {
-      title: "Users Management",
-      desc: "Manage roles, pro payment flags, block or delete accounts.",
-      href: "/dashboard/admin/users",
-      icon: Users,
-    },
-    {
-      title: "All Tuitions Control",
-      desc: "Approve or revoke tuitions, track active/closed states, or delete.",
-      href: "/dashboard/admin/tuitions",
-      icon: BookOpen,
-    },
-    {
-      title: "Payments Management",
-      desc: "Review transactions, toggle payment status, and clean records.",
-      href: "/dashboard/admin/payments",
-      icon: CreditCard,
-    },
-  ];
+  // const quickLinks = [
+  //   {
+  //     title: "Users Management",
+  //     desc: "Manage roles, pro payment flags, block or delete accounts.",
+  //     href: "/dashboard/admin/users",
+  //     icon: Users,
+  //   },
+  //   {
+  //     title: "All Tuitions Control",
+  //     desc: "Approve or revoke tuitions, track active/closed states, or delete.",
+  //     href: "/dashboard/admin/tuitions",
+  //     icon: BookOpen,
+  //   },
+  //   {
+  //     title: "Payments Management",
+  //     desc: "Review transactions, toggle payment status, and clean records.",
+  //     href: "/dashboard/admin/payments",
+  //     icon: CreditCard,
+  //   },
+  // ];
 
   return (
     <main className="w-full text-slate-900 dark:text-slate-100">
@@ -217,7 +220,7 @@ export default async function AdminOverviewPage() {
         </div>
 
         {/* Quick Navigation Cards */}
-        <div className="grid grid-cols-1 gap-3.5 md:grid-cols-3">
+        {/* <div className="grid grid-cols-1 gap-3.5 md:grid-cols-3">
           {quickLinks.map((item) => {
             const Icon = item.icon;
             return (
@@ -245,7 +248,9 @@ export default async function AdminOverviewPage() {
               </Link>
             );
           })}
-        </div>
+        </div> */}
+        {/* <AdminDashboardPage /> */}
+        <AdminSpotlightSection />
       </div>
     </main>
   );

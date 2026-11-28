@@ -292,7 +292,7 @@ const Footer = () => {
               Terms of Service
             </Link>
             <Link
-              href="/about"
+              href="/Helpchenter"
               className="font-medium transition-colors hover:text-cyan-700 dark:hover:text-cyan-300"
             >
               Help Center
